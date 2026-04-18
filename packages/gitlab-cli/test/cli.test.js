@@ -4,7 +4,7 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { main } from "../src/cli.js";
-import { captureProcess, restoreEnv } from "./support.js";
+import { captureProcess, restoreEnv, runCli } from "./support.js";
 
 test("CLI prints help with no arguments", async () => {
   const result = await captureProcess(async () => {
@@ -336,10 +336,25 @@ test("data commands work with config-only authentication", async () => {
           web_url: "https://gitlab.example.com/platform"
         }
       ],
-      text: async () => "[]",
+      text: async () => JSON.stringify([
+        {
+          id: 1,
+          path: "platform",
+          full_path: "platform",
+          web_url: "https://gitlab.example.com/platform"
+        }
+      ]),
       headers: {
         get(name) {
-          return name.toLowerCase() === "x-next-page" ? "" : null;
+          if (name.toLowerCase() === "x-next-page") {
+            return "";
+          }
+
+          if (name.toLowerCase() === "content-type") {
+            return "application/json";
+          }
+
+          return null;
         }
       }
     };
@@ -352,6 +367,136 @@ test("data commands work with config-only authentication", async () => {
 
     assert.equal(result.exitCode, 0);
     assert.match(result.stdout, /"path_with_namespace":"platform"/);
+  } finally {
+    globalThis.fetch = originalFetch;
+    restoreEnvSnapshot(envSnapshot);
+  }
+});
+
+test("doctor --json reports config, auth source, and reachability", async () => {
+  const envSnapshot = snapshotEnv([
+    "GITLAB_HOST",
+    "GITLAB_TOKEN",
+    "GITLAB_CACHE_DIR",
+    "GITLAB_TASK_ID_PATTERN",
+    "HOME"
+  ]);
+  const originalFetch = globalThis.fetch;
+  const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), "glc-cli-home-"));
+
+  process.env.HOME = homeDir;
+  process.env.GITLAB_HOST = "https://gitlab.example.com";
+  process.env.GITLAB_TOKEN = "env-token";
+  delete process.env.GITLAB_CACHE_DIR;
+  delete process.env.GITLAB_TASK_ID_PATTERN;
+
+  globalThis.fetch = async (input, init) => {
+    const url = new URL(String(input));
+    assert.equal(url.pathname, "/api/v4/groups");
+    assert.equal(init.headers["PRIVATE-TOKEN"], "env-token");
+    return {
+      ok: true,
+      status: 200,
+      statusText: "OK",
+      json: async () => [],
+      text: async () => "[]",
+      headers: { get: () => null }
+    };
+  };
+
+  try {
+    const result = await captureProcess(async () => {
+      await main(["--json", "doctor"]);
+    });
+
+    assert.equal(result.exitCode, 0);
+    const data = JSON.parse(result.stdout);
+    assert.equal(data.tool, "glc");
+    assert.equal(data.ok, true);
+    assert.equal(data.auth.source, "env");
+    assert.equal(data.auth.available, true);
+    assert.equal(data.checks[0].ok, true);
+    assert.deepEqual(data.missing, []);
+    assert.doesNotMatch(result.stdout, /env-token/);
+  } finally {
+    globalThis.fetch = originalFetch;
+    restoreEnvSnapshot(envSnapshot);
+  }
+});
+
+test("glc emits JSON error envelopes when --json is requested", async () => {
+  const result = await runCli(
+    new URL("../bin/glc.js", import.meta.url),
+    ["--json", "groups", "get"]
+  );
+
+  assert.equal(result.exitCode, 1);
+  assert.equal(result.stderr, "");
+  const data = JSON.parse(result.stdout);
+  assert.equal(data.ok, false);
+  assert.equal(data.error.code, "cli_error");
+  assert.match(data.error.message, /No value provided for --group/);
+});
+
+test("glc api request rejects non-read methods", async () => {
+  const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), "glc-cli-home-"));
+  const result = await runCli(
+    new URL("../bin/glc.js", import.meta.url),
+    ["--json", "api", "request", "--method", "POST", "--path", "/api/v4/groups"],
+    {
+      env: {
+        HOME: homeDir,
+        GITLAB_HOST: "https://gitlab.example.com",
+        GITLAB_TOKEN: "env-token"
+      }
+    }
+  );
+
+  assert.equal(result.exitCode, 2);
+  const data = JSON.parse(result.stdout);
+  assert.equal(data.ok, false);
+  assert.match(data.error.message, /only GET and HEAD are supported/i);
+});
+
+test("glc api request performs read-only JSON requests", async () => {
+  const envSnapshot = snapshotEnv([
+    "GITLAB_HOST",
+    "GITLAB_TOKEN",
+    "GITLAB_CACHE_DIR",
+    "GITLAB_TASK_ID_PATTERN",
+    "HOME"
+  ]);
+  const originalFetch = globalThis.fetch;
+  const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), "glc-cli-home-"));
+
+  process.env.HOME = homeDir;
+  process.env.GITLAB_HOST = "https://gitlab.example.com";
+  process.env.GITLAB_TOKEN = "env-token";
+  delete process.env.GITLAB_CACHE_DIR;
+  delete process.env.GITLAB_TASK_ID_PATTERN;
+
+  globalThis.fetch = async (input, init) => {
+    const url = new URL(String(input));
+    assert.equal(url.pathname, "/api/v4/groups");
+    assert.equal(url.searchParams.get("search"), "platform");
+    assert.equal(init.method, "GET");
+    return {
+      ok: true,
+      status: 200,
+      statusText: "OK",
+      json: async () => [{ id: 1 }],
+      text: async () => '[{"id":1}]',
+      headers: { get: () => null }
+    };
+  };
+
+  try {
+    const result = await captureProcess(async () => {
+      await main(["--json", "api", "request", "--path", "/api/v4/groups", "--query", "search=platform"]);
+    });
+
+    assert.equal(result.exitCode, 0);
+    assert.deepEqual(JSON.parse(result.stdout), [{ id: 1 }]);
   } finally {
     globalThis.fetch = originalFetch;
     restoreEnvSnapshot(envSnapshot);

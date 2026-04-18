@@ -19,18 +19,20 @@ The intended use case is exploration and inspection of Kaiten cards from shells,
 
 This repository currently contains a first working scaffold:
 
-- `task mine`
-- `task find`
-- `task get`
+- `doctor`
+- `api request`
+- `tasks mine`
+- `tasks find`
+- `tasks get`
 
 The CLI is Kaiten-only and read-oriented in this version.
 
 Current implementation notes:
 
-- `task mine` resolves the current user through `GET /api/latest/users/current`
-- `task mine` and `task find` use `GET /api/latest/cards`
-- `task get` uses `GET /api/latest/cards/{card_id}`
-- `task get` keeps a broader board-scan fallback if direct lookup does not resolve
+- `tasks mine` resolves the current user through `GET /api/latest/users/current`
+- `tasks mine` and `tasks find` use `GET /api/latest/cards`
+- `tasks get` uses `GET /api/latest/cards/{card_id}`
+- `tasks get` keeps a broader board-scan fallback if direct lookup does not resolve
 
 ## Why `ktc`
 
@@ -38,7 +40,7 @@ Product CLIs often assume a human operator who already knows the model well and 
 
 `ktc` takes a different approach:
 
-- commands follow one stable grammar: `ktc task <verb> ...`
+- commands follow one stable grammar: `ktc tasks <verb> ...`
 - selectors are explicit: `--space`, `--board`, `--assignee`
 - positional arguments are used only where they simplify the obvious case
 - output defaults to a concise readable task view
@@ -61,14 +63,21 @@ node ./bin/ktc.js --help
 Intended package usage:
 
 ```bash
-npm install -g kaiten-cli
+npm install -g @khaale/kaiten-cli
 ktc --help
 ```
 
 or:
 
 ```bash
-npx kaiten-cli --help
+npx @khaale/kaiten-cli --help
+```
+
+Recommended first-run smoke test:
+
+```bash
+command -v ktc
+ktc --json doctor
 ```
 
 ## Publishing
@@ -83,7 +92,7 @@ The package metadata is set up so publishing only includes the built runtime fil
 
 Before publishing:
 
-1. Confirm the package name in [`package.json`](/Users/aleksander_khanteev/Documents/projects/khaale/kaiten-cli/package.json) is the one you want on npm.
+1. Confirm the package name in [package.json](/Users/aleksander_khanteev/Documents/projects/khaale/agentic-cli-tools/packages/kaiten-cli/package.json) is the one you want on npm.
 2. Run:
 
 ```bash
@@ -103,17 +112,43 @@ npm publish
 
 ## Authentication
 
-`ktc` reads Kaiten connection settings from environment variables.
+`ktc` reads Kaiten connection settings from either:
+
+- environment variables
+- a persisted global JSON config file
+
+Per-key precedence is:
+
+1. `KAITEN_URL`, `KAITEN_API_TOKEN`, `KAITEN_API_BASE`, `KAITEN_BROKEN_API`, `KAITEN_CACHE_DIR` from the environment
+2. the same keys in the global `config.json`
+3. built-in OS-specific cache-dir default for `KAITEN_CACHE_DIR`
+
+The global config lives at:
+
+- Linux: `${XDG_CONFIG_HOME:-~/.config}/ktc/config.json`
+- macOS: `~/Library/Application Support/ktc/config.json`
+- Windows: `%APPDATA%\ktc\config.json`
+
+Recommended setup:
 
 ```bash
 export KAITEN_URL=https://your-domain.kaiten.ru
 export KAITEN_API_TOKEN=your-token
+ktc config init
 ```
 
 Optional:
 
 ```bash
 export KAITEN_API_BASE=/api/latest
+```
+
+You can also persist config explicitly:
+
+```bash
+ktc config init \
+  --kaiten-url https://your-domain.kaiten.ru \
+  --kaiten-api-token your-token
 ```
 
 There is no interactive login flow in v1.
@@ -123,12 +158,17 @@ There is no interactive login flow in v1.
 Command shape:
 
 ```text
-ktc task <mine|find|get> [args] [flags]
+ktc tasks <mine|find|get> [args] [flags]
+ktc doctor [flags]
+ktc api request [flags]
 ```
 
 Nouns:
 
-- `task`
+- `doctor`
+- `api request`
+- `tasks`
+- `config`
 
 Verbs:
 
@@ -153,6 +193,7 @@ Common output flags:
 - `--fields a,b,c`
 - `--json`
 - `--md`
+- `--raw`
 - `--compact`
 
 Common control flags:
@@ -164,16 +205,22 @@ Common control flags:
 
 ### Explore your work
 
+Run the recommended preflight check:
+
+```bash
+ktc --json doctor
+```
+
 List your open tasks:
 
 ```bash
-ktc task mine
+ktc tasks mine
 ```
 
 The same in JSON:
 
 ```bash
-ktc task mine --json
+ktc tasks mine --json
 ```
 
 ### Find tasks
@@ -181,25 +228,25 @@ ktc task mine --json
 Find tasks by text:
 
 ```bash
-ktc task find auth
+ktc tasks find auth
 ```
 
 Find tasks assigned to you:
 
 ```bash
-ktc task find --assignee me --search auth
+ktc tasks find --assignee me --search auth
 ```
 
 Find tasks for another assignee:
 
 ```bash
-ktc task find --assignee alice --state open
+ktc tasks find --assignee alice --state open
 ```
 
 Narrow the search to a space or board:
 
 ```bash
-ktc task find --space Engineering --board Backend
+ktc tasks find --space Engineering --board Backend
 ```
 
 ### Inspect one task
@@ -207,13 +254,19 @@ ktc task find --space Engineering --board Backend
 Get one task by id:
 
 ```bash
-ktc task get 9001
+ktc tasks get --id 9001
 ```
 
 Debug a slow request:
 
 ```bash
-ktc task get 9001 --verbose
+ktc tasks get --id 9001 --verbose
+```
+
+Use the raw escape hatch for a read-only endpoint:
+
+```bash
+ktc --json api request --path /api/latest/spaces --query query=platform
 ```
 
 ## Output Model
@@ -248,7 +301,7 @@ List output is intentionally restricted by default. It should provide enough inf
 Examples:
 
 ```bash
-ktc task mine
-ktc task find auth --json
-ktc task get 9001
+ktc tasks mine
+ktc tasks find auth --json
+ktc tasks get --id 9001
 ```

@@ -1,5 +1,7 @@
 import { command, extendType, flag, option, optional, string, subcommands, number } from "cmd-ts";
+import { apiRequest } from "../commands/api.js";
 import { cacheClear, cacheStatus, cacheWarm } from "../commands/cache.js";
+import { doctor } from "../commands/doctor.js";
 import { configGet, configInit, configPath } from "../commands/config.js";
 import { getGroup, groupsTree, listGroups } from "../commands/groups.js";
 import { getJob, jobTrace, listJobs } from "../commands/jobs.js";
@@ -32,6 +34,23 @@ export const gitLabCli = subcommands({
   name: "glc",
   description: "GitLab explorer CLI for agents and shell users.",
   cmds: {
+    doctor: commandLeaf("doctor", "Verify config, auth, cache, and API reachability.", {
+      ...outputArgs()
+    }, async () => doctor({})),
+    api: resource("api", "Run read-only raw API requests.", {
+      request: clientLeaf("request", "Perform a read-only GitLab API request.", {
+        ...outputArgs(),
+        ...refreshArgs(),
+        method: textOption("method", "HTTP method. Only GET and HEAD are supported."),
+        path: requiredTextOption("path", "Absolute GitLab API path, for example /api/v4/projects."),
+        query: textOption("query", "Optional URL query string, for example per_page=1&page=2.")
+      }, async (args, { client }) => apiRequest(client, {
+        method: args.method,
+        path: args.path,
+        query: args.query,
+        refresh: args.refresh
+      }))
+    }),
     groups: resource("groups", "Inspect groups and group trees.", {
       list: clientLeaf("list", "List groups.", {
         ...outputArgs(),

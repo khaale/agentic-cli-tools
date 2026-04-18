@@ -178,6 +178,10 @@ export function normalizeApiBase(value) {
   return normalized;
 }
 
+export function parseHostAndApiBaseForDoctor(rawUrl, rawApiBase) {
+  return parseHostAndApiBase(rawUrl, rawApiBase);
+}
+
 function buildInitConfig(options, env) {
   const urlSource = options.kaitenUrl !== undefined ? "flag" : env.KAITEN_URL !== undefined ? "env" : null;
   const tokenSource =

@@ -9,7 +9,9 @@ import {
   subcommands,
   number
 } from "cmd-ts";
+import { apiRequest } from "../commands/api.js";
 import { configGet, configInit, configPath } from "../commands/config.js";
+import { doctor } from "../commands/doctor.js";
 import { findTasks, getTask, listMineTasks } from "../commands/tasks.js";
 import { FileCache } from "./cache.js";
 import { loadConfig } from "./config.js";
@@ -29,8 +31,29 @@ export const kaitenCli = subcommands({
   name: "ktc",
   description: "Read-oriented Kaiten explorer CLI for tasks and cards.",
   cmds: {
-    task: subcommands({
-      name: "task",
+    doctor: commandLeaf("doctor", "Verify config, auth, cache, and API reachability.", {
+      ...outputArgs()
+    }, async () => doctor({})),
+    api: subcommands({
+      name: "api",
+      description: "Run read-only raw API requests.",
+      cmds: {
+        request: clientLeaf("request", "Perform a read-only Kaiten API request.", {
+          ...outputArgs(),
+          ...runtimeArgs(),
+          method: textOption("method", "HTTP method. Only GET and HEAD are supported."),
+          path: requiredTextOption("path", "Absolute Kaiten API path, for example /api/latest/cards."),
+          query: textOption("query", "Optional URL query string, for example query=platform&limit=1.")
+        }, async (args, { client }) => apiRequest(client, {
+          method: args.method,
+          path: args.path,
+          query: args.query,
+          refresh: args.refresh
+        }))
+      }
+    }),
+    tasks: subcommands({
+      name: "tasks",
       description: "Inspect Kaiten tasks.",
       cmds: {
         mine: clientLeaf("mine", "List my open tasks.", {
@@ -161,6 +184,7 @@ function outputArgs() {
     fields: csvArg("fields", "Comma-separated fields to project from the output."),
     json: flag({ long: "json", description: "Force JSON output." }),
     md: flag({ long: "md", description: "Force Markdown output." }),
+    raw: flag({ long: "raw", description: "Print raw values without Markdown or JSON wrapping." }),
     compact: flag({ long: "compact", description: "Use compact JSON output." })
   };
 }
@@ -197,6 +221,7 @@ function pickOutputOptions(args) {
     fields: args.fields,
     json: args.json,
     md: args.md,
+    raw: args.raw,
     compact: args.compact
   };
 }

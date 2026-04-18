@@ -16,10 +16,11 @@ export class GitLabClient {
   }
 
   async request(apiPath, options = {}) {
-    const { query = {}, refresh = false, ttlMs, scope = {}, raw = false, verbose = false } = options;
+    const { query = {}, refresh = false, ttlMs, scope = {}, raw = false, verbose = false, method = "GET" } = options;
     const url = buildUrl(this.host, apiPath, query);
     const key = `${url.pathname}?${url.searchParams.toString()}`;
-    const cacheEntry = await this.cache.get(key, { refresh });
+    const canUseCache = method === "GET";
+    const cacheEntry = canUseCache ? await this.cache.get(key, { refresh }) : null;
 
     if (cacheEntry) {
       if (verbose) {
@@ -36,6 +37,7 @@ export class GitLabClient {
     const response = await requestWithRetry(
       url,
       {
+        method,
         headers: {
           "PRIVATE-TOKEN": this.token
         }
@@ -43,17 +45,20 @@ export class GitLabClient {
       { verbose }
     );
 
-    const data = raw ? await response.text() : await response.json();
+    const data = await parseResponse(response, { method, raw });
     const nextPage = response.headers.get("x-next-page") || null;
-    await this.cache.set(key, {
-      key,
-      scope,
-      storedAt: Date.now(),
-      expiresAt: Date.now() + (ttlMs ?? inferTtlMs(apiPath)),
-      data,
-      nextPage
-    });
-    return { data, nextPage };
+    if (canUseCache) {
+      await this.cache.set(key, {
+        key,
+        scope,
+        storedAt: Date.now(),
+        expiresAt: Date.now() + (ttlMs ?? inferTtlMs(apiPath)),
+        data,
+        nextPage,
+        status: response.status
+      });
+    }
+    return { data, nextPage, status: response.status };
   }
 
   async requestPage(apiPath, options = {}) {
@@ -187,6 +192,37 @@ function buildUrl(host, apiPath, query) {
   }
 
   return url;
+}
+
+async function parseResponse(response, { method, raw }) {
+  if (method === "HEAD") {
+    return null;
+  }
+
+  if (raw) {
+    return response.text();
+  }
+
+  const contentType = response.headers.get("content-type") || "";
+  if (contentType.includes("json")) {
+    return response.json();
+  }
+
+  const text = await response.text();
+  if (looksLikeJson(text)) {
+    try {
+      return JSON.parse(text);
+    } catch {
+      return text;
+    }
+  }
+
+  return text;
+}
+
+function looksLikeJson(value) {
+  const text = String(value || "").trim();
+  return text.startsWith("{") || text.startsWith("[");
 }
 
 async function handleHttpError(response) {

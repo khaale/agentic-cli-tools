@@ -1,82 +1,69 @@
 ---
 name: ktc
-description: Agent usage guide for the `ktc` Kaiten CLI: list your tasks, find cards, and fetch task details in Markdown or JSON.
+description: Companion skill for the `ktc` Kaiten CLI. Verify the installed command, run `ktc --json doctor` first, then use read-only task commands or `api request` when a high-level verb is missing.
 ---
 
-# `ktc` CLI Usage & Execution
+# `ktc` Companion Skill
 
-Use `ktc` for read-only Kaiten task exploration. In agent runtimes, execute `ktc` through the available shell or terminal tool instead of assuming a dedicated `ktc` integration exists.
+Use `ktc` for read-only Kaiten exploration from an agent runtime. Execute it through the available shell or terminal tool instead of assuming a dedicated `ktc` API integration exists.
 
-## Command Model Constraints
+## First-run order
 
-Use this command shape:
-
-```text
-ktc task <mine|find|get> [args] [flags]
-```
-
-**Common Resources & Verbs:**
-
-- **task**: `mine`, `find`, `get`
-- **config**: `init`, `get`, `path`
-
-### Task Selectors & Filters
-
-- `--space <id|uid|title>`: Filter by space.
-- `--board <id|uid|title>`: Filter by board.
-- `--assignee <me|id|uid|email|username|name>`: Filter by assignee (`me` for current user).
-- `--search <text>`: Search text in tasks.
-- `--state <open|done|archived|all|active>`: Filter by state (`active` is an alias for `open`).
-- `--limit <n>`: Maximum number of tasks to return.
-- `--id <task-id>`: (Required for `get`) Specific task ID.
-
-**Note on `task find`:** You can also pass search terms as positional arguments at the end of the command.
-
-### Output & Runtime Flags
-
-- `--json`: Force JSON output.
-- `--md`: Force Markdown output (default).
-- `--compact`: Use compact JSON output.
-- `--fields a,b,c`: Comma-separated fields to project.
-- `--refresh`: Ignore cached responses.
-- `--verbose`: Enable verbose request logging.
-
-## Recipes
-
-### List my open tasks
+1. Verify the command exists:
 
 ```bash
-ktc task mine
+command -v ktc
 ```
 
-### Find tasks by text in a specific board
+2. Run the preflight check before reading tasks:
 
 ```bash
-ktc task find --board "Backend" "auth system"
+ktc --json doctor
 ```
 
-### Find tasks assigned to me in a space
+3. If setup is missing, configure auth through environment variables or `ktc config init`.
+
+## Auth and config
+
+`ktc` reads configuration in this order:
+
+1. Environment variables: `KAITEN_URL`, `KAITEN_API_TOKEN`, `KAITEN_API_BASE`, `KAITEN_BROKEN_API`, `KAITEN_CACHE_DIR`
+2. Global config file from `ktc config init`
+
+Use `ktc config path` to locate the file and `ktc config get` to inspect redacted resolved metadata.
+
+## Safe read path
+
+Prefer the high-level read commands first:
+
+- `ktc tasks mine`
+- `ktc tasks find`
+- `ktc tasks get --id <task-id>`
+
+Use `--space`, `--board`, `--assignee`, `--state`, and `--limit` to keep results bounded. Prefer `--json` when another machine step will consume the output.
+
+## Raw escape hatch
+
+If you need a read-only Kaiten endpoint that does not yet have a dedicated command, use:
 
 ```bash
-ktc task find --assignee me --space "Platform"
+ktc --json api request --path /api/latest/... [--query key=value] [--method GET|HEAD]
 ```
 
-### Get detailed task information
-
-```bash
-ktc task get --id 9001 --json
-```
-
-## Environment Requirements
-
-- `KAITEN_URL`: Kaiten base URL.
-- `KAITEN_API_TOKEN`: Kaiten API token.
+Only `GET` and `HEAD` are supported. Do not improvise writes without explicit user approval.
 
 ## Guardrails
 
-- This version is read-only.
-- Default output is Markdown.
-- Use `--json` when the result will be piped into another machine step.
-- `task mine` resolves the current user automatically.
-- Use `--refresh` when you suspect the cache is stale.
-- Do not assume the runtime exposes `ktc` as a dedicated API tool; use shell/terminal execution.
+- Start with `ktc --json doctor` in a fresh thread or environment.
+- Prefer `tasks mine|find|get` over `api request`.
+- Default output is Markdown; add `--json` for machine-readable output.
+- Use `--refresh` only when cache staleness is more likely than repeated reads.
+- This CLI is read-only in the current version.
+
+## Copy-paste examples
+
+```bash
+ktc --json doctor
+ktc tasks find --assignee me --state open --json
+ktc --json api request --path /api/latest/spaces --query query=platform
+```

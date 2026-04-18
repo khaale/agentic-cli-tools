@@ -17,6 +17,8 @@ The intended use case is exploration and inspection of GitLab groups, projects, 
 
 This repository currently contains a first working scaffold:
 
+- `doctor`
+- `api request`
 - `groups list|get|tree`
 - `projects list|get|tree`
 - `repos tree|refs|file`
@@ -56,14 +58,21 @@ node ./bin/glc.js
 Intended package usage:
 
 ```bash
-npm install -g @your-org/glc
+npm install -g @khaale/gitlab-cli
 glc --help
 ```
 
 or:
 
 ```bash
-npx @your-org/glc --help
+npx @khaale/gitlab-cli --help
+```
+
+Recommended first-run smoke test:
+
+```bash
+command -v glc
+glc --json doctor
 ```
 
 ## Authentication
@@ -134,10 +143,13 @@ Command shape:
 
 ```text
 glc <resource> <verb> [flags]
+glc doctor [flags]
 ```
 
 Resources:
 
+- `doctor`
+- `api request`
 - `groups`
 - `projects`
 - `repos`
@@ -175,6 +187,12 @@ Common control flags:
 - `--refresh`
 - `--verbose`
 
+Read-only raw API flags:
+
+- `api request --path <absolute-api-path>`
+- `--method <GET|HEAD>`
+- `--query key=value&key2=value2`
+
 Config init flags:
 
 - `--gitlab-host <url>`
@@ -192,6 +210,12 @@ Show the resolved config file path:
 glc config path
 ```
 
+Run the recommended preflight check:
+
+```bash
+glc --json doctor
+```
+
 Persist the current env-backed configuration:
 
 ```bash
@@ -202,6 +226,12 @@ Inspect the effective config with a redacted token:
 
 ```bash
 glc config get
+```
+
+Use the raw escape hatch for a read-only endpoint:
+
+```bash
+glc --json api request --path /api/v4/projects --query per_page=1
 ```
 
 ### Discover groups and projects

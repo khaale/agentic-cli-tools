@@ -7,12 +7,16 @@ export function resolveOutputMode(_kind, options) {
     return "raw";
   }
 
-  if (_kind === "config") {
+  if (_kind === "config" || _kind === "doctor") {
     return "json";
   }
 
   if (options.json) {
     return "json";
+  }
+
+  if (options.raw) {
+    return "raw";
   }
 
   if (options.md) {
@@ -22,8 +26,8 @@ export function resolveOutputMode(_kind, options) {
   return "md";
 }
 
-export function writeOutput(value, mode, { compact = false } = {}) {
-  const sanitized = anonymizeForOutput(value);
+export function writeOutput(value, mode, { compact = false, sanitize = true } = {}) {
+  const sanitized = sanitize ? anonymizeForOutput(value) : value;
 
   switch (mode) {
     case "raw":

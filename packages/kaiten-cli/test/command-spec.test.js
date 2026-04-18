@@ -22,9 +22,9 @@ test("cmd-ts parses kaiten config command output flags", async () => {
   assert.equal(outputOptions.json, true);
 });
 
-test("cmd-ts accepts free-text task search terms natively", async () => {
+test("cmd-ts accepts free-text tasks search terms natively", async () => {
   const outcome = await parse(kaitenCli, normalizeKaitenArgv([
-    "task",
+    "tasks",
     "find",
     "auth",
     "flow"
@@ -34,7 +34,7 @@ test("cmd-ts accepts free-text task search terms natively", async () => {
 });
 
 test("cmd-ts rejects unknown resources", async () => {
-  const outcome = await runSafely(kaitenCli, normalizeKaitenArgv(["tasks", "find"]));
+  const outcome = await runSafely(kaitenCli, normalizeKaitenArgv(["task", "find"]));
   assert.equal(outcome._tag, "error");
-  assert.match(outcome.error.config.message, /Did you mean task\?/);
+  assert.match(outcome.error.config.message, /Did you mean tasks\?/);
 });
