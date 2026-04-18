@@ -1,11 +1,11 @@
 ---
 name: ktc
-description: Kaiten task explorer CLI for listing your tasks, finding cards, and getting task details in Markdown or JSON.
+description: Agent usage guide for the `ktc` Kaiten CLI: list your tasks, find cards, and fetch task details in Markdown or JSON.
 ---
 
 # `ktc` CLI Usage & Execution
 
-Use `ktc` for read-only Kaiten task exploration.
+Use `ktc` for read-only Kaiten task exploration. In agent runtimes, execute `ktc` through the available shell or terminal tool instead of assuming a dedicated `ktc` integration exists.
 
 ## Command Model Constraints
 
@@ -79,3 +79,4 @@ ktc task get --id 9001 --json
 - Use `--json` when the result will be piped into another machine step.
 - `task mine` resolves the current user automatically.
 - Use `--refresh` when you suspect the cache is stale.
+- Do not assume the runtime exposes `ktc` as a dedicated API tool; use shell/terminal execution.

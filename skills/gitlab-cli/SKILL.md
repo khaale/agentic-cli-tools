@@ -1,14 +1,14 @@
 ---
 name: glc
-description: GitLab CLI tool for exploring groups, projects, merge requests, pipelines, jobs, and repository content via API. Clean JSON output with `jq` filtering.
+description: Agent usage guide for the `glc` GitLab CLI: explore groups, projects, merge requests, pipelines, jobs, and repository content with agent-friendly output and `jq` filtering.
 ---
 
 # `glc` CLI Usage & Execution
 
-Use `glc` for read-oriented GitLab exploration. **You MUST execute all `glc` commands using the `bash` tool.** Do not attempt to call a tool named `glc` directly.
+Use `glc` for read-oriented GitLab exploration. In agent runtimes, execute `glc` through the available shell or terminal tool rather than assuming there is a dedicated first-class `glc` tool.
 
 **Primary Identifier Policy:**
-Always use `path_with_namespace` as the primary native identifier for all searches, filtering, and output. Avoid using `name` or simple `path` unless explicitly required.
+Always use `path_with_namespace` as the primary native identifier for searches, filtering, and output. Avoid `name` or simple `path` unless explicitly required.
 
 ## Command Model Constraints
 
@@ -137,5 +137,5 @@ glc jobs trace --project group/project --job 789
 - `projects list` already returns the full matching set; add `--limit` only when you need a cap.
 - **Use `--refresh`** only when freshness is critical; otherwise, trust the cache.
 - **Large Output:** Do not request `--full` on large lists unless you specifically need every field.
-- **Tool Hallucination:** Do not try to call `glc` as a standalone tool. Always use `bash`.
+- **Tool Hallucination:** Do not assume the runtime exposes `glc` as a dedicated API tool. Use the shell/terminal execution path that the agent runtime provides.
 - **Repository Tree Confusion:** Do not use `projects tree` for repository files. Use `repos tree`.
