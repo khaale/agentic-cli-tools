@@ -36,5 +36,9 @@ test("cmd-ts accepts free-text tasks search terms natively", async () => {
 test("cmd-ts rejects unknown resources", async () => {
   const outcome = await runSafely(kaitenCli, normalizeKaitenArgv(["task", "find"]));
   assert.equal(outcome._tag, "error");
-  assert.match(outcome.error.config.message, /Did you mean tasks\?/);
+  assert.match(stripAnsi(outcome.error.config.message), /Did you mean tasks\?/);
 });
+
+function stripAnsi(value) {
+  return String(value).replace(/\x1B\[[0-9;]*m/g, "");
+}
