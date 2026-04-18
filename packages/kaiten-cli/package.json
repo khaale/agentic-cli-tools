@@ -1,0 +1,40 @@
+{
+  "name": "@khaale/kaiten-cli",
+  "version": "0.1.0",
+  "description": "Read-oriented Kaiten explorer CLI for tasks/cards",
+  "type": "module",
+  "main": "./dist/cli.js",
+  "bin": {
+    "ktc": "./dist/bin/ktc.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "start": "node ./bin/ktc.js",
+    "build:pack": "node ../../scripts/build-self-contained-cli.mjs packages/kaiten-cli ktc",
+    "lint": "node --check ./bin/ktc.js && node --check ./src/cli.js",
+    "test": "node --test test/*.test.js",
+    "pack:check": "pnpm build:pack && npm pack --dry-run --cache ./.npm-cache",
+    "prepublishOnly": "pnpm lint && pnpm test && pnpm pack:check"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "keywords": [
+    "kaiten",
+    "cli",
+    "agent",
+    "tasks"
+  ],
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "devDependencies": {
+    "@khaale/cli-core": "workspace:*",
+    "cmd-ts": "^0.15.0"
+  }
+}

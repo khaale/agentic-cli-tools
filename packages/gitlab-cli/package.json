@@ -1,0 +1,41 @@
+{
+  "name": "@khaale/gitlab-cli",
+  "version": "0.1.0",
+  "description": "LLM-agent native GitLab explorer CLI",
+  "type": "module",
+  "main": "./dist/cli.js",
+  "bin": {
+    "glc": "./dist/bin/glc.js"
+  },
+  "files": [
+    "dist",
+    "docs",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "start": "node ./bin/glc.js",
+    "build:pack": "node ../../scripts/build-self-contained-cli.mjs packages/gitlab-cli glc",
+    "lint": "node --check ./bin/glc.js && node --check ./src/cli.js",
+    "test": "node --test test/*.test.js",
+    "pack:check": "pnpm build:pack && npm pack --dry-run --cache ./.npm-cache",
+    "prepublishOnly": "pnpm lint && pnpm test && pnpm pack:check"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "keywords": [
+    "gitlab",
+    "cli",
+    "jq",
+    "agent"
+  ],
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "devDependencies": {
+    "@khaale/cli-core": "workspace:*",
+    "cmd-ts": "^0.15.0"
+  }
+}

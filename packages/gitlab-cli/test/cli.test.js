@@ -1,0 +1,369 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import fs from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
+import { main } from "../src/cli.js";
+import { captureProcess, restoreEnv } from "./support.js";
+
+test("CLI prints help with no arguments", async () => {
+  const result = await captureProcess(async () => {
+    await main([]);
+  });
+
+  assert.equal(result.exitCode, 0);
+  assert.match(result.stdout, /glc <subcommand>/);
+  assert.match(result.stdout, /groups - Inspect groups and group trees\./);
+  assert.match(result.stdout, /mrs - Inspect merge requests\./);
+  assert.match(result.stdout, /config - Manage persisted GitLab CLI configuration\./);
+});
+
+test("CLI reports missing configuration for data commands", async () => {
+  const envSnapshot = snapshotEnv([
+    "GITLAB_HOST",
+    "GITLAB_TOKEN",
+    "GITLAB_CACHE_DIR",
+    "GITLAB_TASK_ID_PATTERN",
+    "HOME"
+  ]);
+  process.env.HOME = await fs.mkdtemp(path.join(os.tmpdir(), "glc-cli-home-"));
+  delete process.env.GITLAB_HOST;
+  delete process.env.GITLAB_TOKEN;
+  delete process.env.GITLAB_CACHE_DIR;
+  delete process.env.GITLAB_TASK_ID_PATTERN;
+
+  try {
+    const result = await captureProcess(async () => {
+      await main(["groups", "list"]);
+    });
+
+    assert.equal(result.exitCode, 3);
+    assert.match(result.stderr, /missing required configuration: GITLAB_HOST/);
+  } finally {
+    restoreEnvSnapshot(envSnapshot);
+  }
+});
+
+test("published package metadata does not depend on workspace protocol", async () => {
+  const packageJson = JSON.parse(
+    await fs.readFile(new URL("../package.json", import.meta.url), "utf8")
+  );
+
+  assert.notEqual(packageJson.dependencies?.["@khaale/cli-core"], "workspace:*");
+});
+
+test("config init writes config.json using env fallback", async () => {
+  const envSnapshot = snapshotEnv([
+    "GITLAB_HOST",
+    "GITLAB_TOKEN",
+    "GITLAB_CACHE_DIR",
+    "GITLAB_TASK_ID_PATTERN",
+    "HOME"
+  ]);
+  const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), "glc-cli-home-"));
+  process.env.HOME = homeDir;
+  process.env.GITLAB_HOST = "https://gitlab.example.com/";
+  process.env.GITLAB_TOKEN = "env-token";
+  delete process.env.GITLAB_CACHE_DIR;
+  process.env.GITLAB_TASK_ID_PATTERN = "TASK-(\\d+)";
+
+  try {
+    const result = await captureProcess(async () => {
+      await main(["config", "init"]);
+    });
+
+    assert.equal(result.exitCode, 0);
+    const data = JSON.parse(result.stdout);
+    assert.equal(
+      data.path,
+      path.join(homeDir, "Library", "Application Support", "glc", "config.json")
+    );
+    assert.deepEqual(data.configured.sort(), ["GITLAB_HOST", "GITLAB_TASK_ID_PATTERN", "GITLAB_TOKEN"]);
+    assert.deepEqual(data.sources, {
+      GITLAB_HOST: "env",
+      GITLAB_TASK_ID_PATTERN: "env",
+      GITLAB_TOKEN: "env"
+    });
+    assert.doesNotMatch(result.stdout, /https:\/\/gitlab\.example\.com/);
+    assert.doesNotMatch(result.stdout, /env-token/);
+
+    const written = JSON.parse(await fs.readFile(data.path, "utf8"));
+    assert.deepEqual(written, {
+      GITLAB_HOST: "https://gitlab.example.com",
+      GITLAB_TOKEN: "env-token",
+      GITLAB_TASK_ID_PATTERN: "TASK-(\\d+)"
+    });
+  } finally {
+    restoreEnvSnapshot(envSnapshot);
+  }
+});
+
+test("config init can create an empty config scaffold", async () => {
+  const envSnapshot = snapshotEnv([
+    "GITLAB_HOST",
+    "GITLAB_TOKEN",
+    "GITLAB_CACHE_DIR",
+    "GITLAB_TASK_ID_PATTERN",
+    "HOME"
+  ]);
+  const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), "glc-cli-home-"));
+  process.env.HOME = homeDir;
+  delete process.env.GITLAB_HOST;
+  delete process.env.GITLAB_TOKEN;
+  delete process.env.GITLAB_CACHE_DIR;
+  delete process.env.GITLAB_TASK_ID_PATTERN;
+
+  try {
+    const result = await captureProcess(async () => {
+      await main(["config", "init"]);
+    });
+
+    assert.equal(result.exitCode, 0);
+    const data = JSON.parse(result.stdout);
+    assert.deepEqual(data.configured, []);
+    assert.deepEqual(data.sources, {});
+
+    const written = JSON.parse(await fs.readFile(data.path, "utf8"));
+    assert.deepEqual(written, {});
+  } finally {
+    restoreEnvSnapshot(envSnapshot);
+  }
+});
+
+test("config init requires --force to overwrite an existing config", async () => {
+  const envSnapshot = snapshotEnv([
+    "GITLAB_HOST",
+    "GITLAB_TOKEN",
+    "GITLAB_CACHE_DIR",
+    "GITLAB_TASK_ID_PATTERN",
+    "HOME"
+  ]);
+  const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), "glc-cli-home-"));
+  const configDir = path.join(homeDir, "Library", "Application Support", "glc");
+  const configPath = path.join(configDir, "config.json");
+
+  process.env.HOME = homeDir;
+  process.env.GITLAB_HOST = "https://gitlab.example.com";
+  process.env.GITLAB_TOKEN = "env-token";
+  delete process.env.GITLAB_TASK_ID_PATTERN;
+
+  await fs.mkdir(configDir, { recursive: true });
+  await fs.writeFile(
+    configPath,
+    `${JSON.stringify({
+      GITLAB_HOST: "https://old.gitlab.example.com",
+      GITLAB_TOKEN: "old-token",
+      EXTRA_KEY: "keep-me"
+    }, null, 2)}\n`,
+    "utf8"
+  );
+
+  try {
+    const failed = await captureProcess(async () => {
+      await main(["config", "init"]);
+    });
+
+    assert.equal(failed.exitCode, 3);
+    assert.match(failed.stderr, /config file already exists/);
+
+    const success = await captureProcess(async () => {
+      await main(["config", "init", "--force", "--gitlab-token", "forced-token"]);
+    });
+
+    assert.equal(success.exitCode, 0);
+    const written = JSON.parse(await fs.readFile(configPath, "utf8"));
+    assert.deepEqual(written, {
+      GITLAB_HOST: "https://gitlab.example.com",
+      GITLAB_TOKEN: "forced-token"
+    });
+  } finally {
+    restoreEnvSnapshot(envSnapshot);
+  }
+});
+
+test("config init checks for existing config before requiring env values", async () => {
+  const envSnapshot = snapshotEnv([
+    "GITLAB_HOST",
+    "GITLAB_TOKEN",
+    "GITLAB_CACHE_DIR",
+    "GITLAB_TASK_ID_PATTERN",
+    "HOME"
+  ]);
+  const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), "glc-cli-home-"));
+  const configDir = path.join(homeDir, "Library", "Application Support", "glc");
+  const configPath = path.join(configDir, "config.json");
+
+  process.env.HOME = homeDir;
+  delete process.env.GITLAB_HOST;
+  delete process.env.GITLAB_TOKEN;
+  delete process.env.GITLAB_CACHE_DIR;
+  delete process.env.GITLAB_TASK_ID_PATTERN;
+
+  await fs.mkdir(configDir, { recursive: true });
+  await fs.writeFile(
+    configPath,
+    `${JSON.stringify({
+      GITLAB_HOST: "https://gitlab.example.com",
+      GITLAB_TOKEN: "config-token"
+    }, null, 2)}\n`,
+    "utf8"
+  );
+
+  try {
+    const result = await captureProcess(async () => {
+      await main(["config", "init"]);
+    });
+
+    assert.equal(result.exitCode, 3);
+    assert.match(result.stderr, /config file already exists/);
+    assert.doesNotMatch(result.stderr, /missing required configuration: GITLAB_HOST/);
+  } finally {
+    restoreEnvSnapshot(envSnapshot);
+  }
+});
+
+test("config get returns path and configured parameter names only", async () => {
+  const envSnapshot = snapshotEnv([
+    "GITLAB_HOST",
+    "GITLAB_TOKEN",
+    "GITLAB_CACHE_DIR",
+    "GITLAB_TASK_ID_PATTERN",
+    "HOME"
+  ]);
+  const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), "glc-cli-home-"));
+  const configDir = path.join(homeDir, "Library", "Application Support", "glc");
+  const configPath = path.join(configDir, "config.json");
+
+  process.env.HOME = homeDir;
+  process.env.GITLAB_TOKEN = "env-token";
+  process.env.GITLAB_TASK_ID_PATTERN = "TASK-(\\d+)";
+  delete process.env.GITLAB_HOST;
+  delete process.env.GITLAB_CACHE_DIR;
+
+  await fs.mkdir(configDir, { recursive: true });
+  await fs.writeFile(
+    configPath,
+    `${JSON.stringify({
+      GITLAB_HOST: "https://gitlab.example.com",
+      GITLAB_TOKEN: "config-token"
+    }, null, 2)}\n`,
+    "utf8"
+  );
+
+  try {
+    const result = await captureProcess(async () => {
+      await main(["config", "get"]);
+    });
+
+    assert.equal(result.exitCode, 0);
+    const data = JSON.parse(result.stdout);
+    assert.equal(data.path, configPath);
+    assert.deepEqual(data.configured.sort(), ["GITLAB_HOST", "GITLAB_TASK_ID_PATTERN", "GITLAB_TOKEN"]);
+    assert.doesNotMatch(result.stdout, /https:\/\/gitlab\.example\.com/);
+    assert.doesNotMatch(result.stdout, /env-token/);
+    assert.doesNotMatch(result.stdout, /TASK-\(\\d\+\)/);
+  } finally {
+    restoreEnvSnapshot(envSnapshot);
+  }
+});
+
+test("config path prints the resolved absolute config path", async () => {
+  const envSnapshot = snapshotEnv(["HOME"]);
+  const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), "glc-cli-home-"));
+  process.env.HOME = homeDir;
+
+  try {
+    const result = await captureProcess(async () => {
+      await main(["config", "path"]);
+    });
+
+    assert.equal(result.exitCode, 0);
+    assert.equal(
+      result.stdout,
+      `${path.join(homeDir, "Library", "Application Support", "glc", "config.json")}\n`
+    );
+  } finally {
+    restoreEnvSnapshot(envSnapshot);
+  }
+});
+
+test("data commands work with config-only authentication", async () => {
+  const envSnapshot = snapshotEnv([
+    "GITLAB_HOST",
+    "GITLAB_TOKEN",
+    "GITLAB_CACHE_DIR",
+    "GITLAB_TASK_ID_PATTERN",
+    "HOME"
+  ]);
+  const originalFetch = globalThis.fetch;
+  const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), "glc-cli-home-"));
+  const configDir = path.join(homeDir, "Library", "Application Support", "glc");
+  const configPath = path.join(configDir, "config.json");
+
+  process.env.HOME = homeDir;
+  delete process.env.GITLAB_HOST;
+  delete process.env.GITLAB_TOKEN;
+  delete process.env.GITLAB_CACHE_DIR;
+  delete process.env.GITLAB_TASK_ID_PATTERN;
+
+  await fs.mkdir(configDir, { recursive: true });
+  await fs.writeFile(
+    configPath,
+    `${JSON.stringify({
+      GITLAB_HOST: "https://gitlab.example.com",
+      GITLAB_TOKEN: "config-token"
+    }, null, 2)}\n`,
+    "utf8"
+  );
+
+  globalThis.fetch = async (input, init) => {
+    const url = new URL(String(input));
+    assert.equal(url.origin, "https://gitlab.example.com");
+    assert.equal(url.pathname, "/api/v4/groups");
+    assert.equal(url.searchParams.get("all_available"), "true");
+    assert.equal(url.searchParams.get("page"), "1");
+    assert.equal(url.searchParams.get("per_page"), "100");
+    assert.equal(init.headers["PRIVATE-TOKEN"], "config-token");
+    return {
+      ok: true,
+      status: 200,
+      statusText: "OK",
+      json: async () => [
+        {
+          id: 1,
+          path: "platform",
+          full_path: "platform",
+          web_url: "https://gitlab.example.com/platform"
+        }
+      ],
+      text: async () => "[]",
+      headers: {
+        get(name) {
+          return name.toLowerCase() === "x-next-page" ? "" : null;
+        }
+      }
+    };
+  };
+
+  try {
+    const result = await captureProcess(async () => {
+      await main(["groups", "list"]);
+    });
+
+    assert.equal(result.exitCode, 0);
+    assert.match(result.stdout, /"path_with_namespace":"platform"/);
+  } finally {
+    globalThis.fetch = originalFetch;
+    restoreEnvSnapshot(envSnapshot);
+  }
+});
+
+function snapshotEnv(keys) {
+  return new Map(keys.map((key) => [key, process.env[key]]));
+}
+
+function restoreEnvSnapshot(snapshot) {
+  for (const [key, value] of snapshot.entries()) {
+    restoreEnv(key, value);
+  }
+}
