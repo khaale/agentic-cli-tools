@@ -31,6 +31,17 @@ export function summarizeTask(card, context = {}) {
   return task;
 }
 
+export function summarizeComment(comment) {
+  return {
+    id: comment.id,
+    author_id: comment.author_id ?? comment.author?.id ?? null,
+    author: summarizeUser(comment.author, comment.author_id),
+    content: comment.content ?? comment.text ?? null,
+    created_at: comment.created ?? comment.created_at ?? null,
+    updated_at: comment.updated ?? comment.updated_at ?? null
+  };
+}
+
 export function compareTasks(left, right) {
   return (
     compareDates(right.updated_at, left.updated_at) ||

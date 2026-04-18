@@ -56,6 +56,10 @@ export function renderMarkdown(value) {
     return renderTaskMarkdown(sanitized);
   }
 
+  if (Array.isArray(sanitized) && sanitized.every(isCommentLike)) {
+    return renderCommentListMarkdown(sanitized);
+  }
+
   if (Array.isArray(sanitized)) {
     return renderGenericListMarkdown(sanitized);
   }
@@ -74,6 +78,26 @@ function renderTaskListMarkdown(tasks) {
     lines.push("");
     lines.push(`## ${task.id} - ${task.title || "(untitled)"}`);
     lines.push(...renderTaskFacts(task));
+  }
+
+  return lines.join("\n");
+}
+
+function renderCommentListMarkdown(comments) {
+  const lines = [`# Task Comments (${comments.length})`];
+
+  if (comments.length === 0) {
+    return lines.join("\n");
+  }
+
+  for (const comment of comments) {
+    const author = comment.author?.hash ? shortenHash(comment.author.hash) : "unknown";
+    lines.push("");
+    lines.push(`## Comment ${comment.id} by ${author} (${comment.created_at})`);
+    if (comment.content) {
+      lines.push("");
+      lines.push(String(comment.content).trim());
+    }
   }
 
   return lines.join("\n");
@@ -162,6 +186,10 @@ function renderGenericObjectMarkdown(value) {
 
 function isTaskLike(value) {
   return Boolean(value && typeof value === "object" && "id" in value && "title" in value);
+}
+
+function isCommentLike(value) {
+  return Boolean(value && typeof value === "object" && "id" in value && "content" in value);
 }
 
 function formatBoolean(value) {

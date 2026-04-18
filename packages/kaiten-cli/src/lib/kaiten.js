@@ -111,6 +111,10 @@ export class KaitenClient {
     return `${this.apiBase}/cards/${encodeURIComponent(cardId)}`;
   }
 
+  cardCommentsPath(cardId) {
+    return `${this.apiBase}/cards/${encodeURIComponent(cardId)}/comments`;
+  }
+
   cardCandidatePaths(cardId) {
     const candidates = [this.cardPath(cardId)];
 
