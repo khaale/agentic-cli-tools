@@ -33,6 +33,11 @@
   "publishConfig": {
     "access": "public"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/khaale/agentic-cli-tools.git",
+    "directory": "packages/kaiten-cli"
+  },
   "devDependencies": {
     "@khaale/cli-core": "workspace:*",
     "cmd-ts": "^0.15.0"

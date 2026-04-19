@@ -11,9 +11,11 @@
     "lint": "pnpm -r lint",
     "test": "pnpm -r test",
     "pack": "pnpm -r pack:check",
-    "check": "pnpm lint && pnpm test && pnpm pack"
+    "check": "pnpm lint && pnpm test && pnpm pack",
+    "release": "pnpm changeset publish"
   },
   "devDependencies": {
+    "@changesets/cli": "^2.31.0",
     "esbuild": "^0.25.3"
   }
 }
