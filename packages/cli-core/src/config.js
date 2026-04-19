@@ -13,10 +13,6 @@ export function resolveConfigPath(toolName, options = {}) {
   const platform = options.platform || process.platform;
   const platformPath = pathForPlatform(platform);
 
-  if (process.env.CI) {
-    console.error(`[DEBUG:resolveConfigPath] tool=${toolName} home=${homeDir} platform=${platform} hasEnv=${options.env !== undefined} XDG=${env.XDG_CONFIG_HOME}`);
-  }
-
   if (platform === "win32") {
     const root =
       env.APPDATA || platformPath.join(env.USERPROFILE || homeDir, "AppData", "Roaming");
@@ -45,10 +41,6 @@ export function resolveDefaultCacheDir(toolName, options = {}) {
   const homeDir = options.homeDir || os.homedir();
   const platform = options.platform || process.platform;
   const platformPath = pathForPlatform(platform);
-
-  if (process.env.CI) {
-    console.error(`[DEBUG:resolveDefaultCacheDir] tool=${toolName} home=${homeDir} platform=${platform} hasEnv=${options.env !== undefined} XDG=${env.XDG_CACHE_HOME}`);
-  }
 
   if (platform === "win32") {
     const root = env.LOCALAPPDATA || platformPath.join(homeDir, "AppData", "Local");
