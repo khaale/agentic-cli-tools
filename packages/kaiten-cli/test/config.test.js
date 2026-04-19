@@ -205,11 +205,7 @@ test("config init can create an empty config scaffold", async () => {
   ]);
   const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), "ktc-cli-home-"));
   process.env.HOME = homeDir;
-  delete process.env.KAITEN_URL;
-  delete process.env.KAITEN_API_TOKEN;
-  delete process.env.KAITEN_API_BASE;
-  delete process.env.KAITEN_BROKEN_API;
-  delete process.env.KAITEN_CACHE_DIR;
+  wipeEnv();
 
   try {
     const result = await captureProcess(async () => {
@@ -242,11 +238,8 @@ test("config get returns path and configured parameter names only", async () => 
   const configPath = path.join(configDir, "config.json");
 
   process.env.HOME = homeDir;
+  wipeEnv();
   process.env.KAITEN_API_TOKEN = "env-token";
-  delete process.env.KAITEN_URL;
-  delete process.env.KAITEN_API_BASE;
-  delete process.env.KAITEN_BROKEN_API;
-  delete process.env.KAITEN_CACHE_DIR;
 
   await fs.mkdir(configDir, { recursive: true });
   await fs.writeFile(
@@ -301,5 +294,18 @@ function snapshotEnv(keys) {
 function restoreEnvSnapshot(snapshot) {
   for (const [key, value] of Object.entries(snapshot)) {
     restoreEnv(key, value);
+  }
+}
+
+function wipeEnv() {
+  const keys = [
+    "KAITEN_URL",
+    "KAITEN_API_TOKEN",
+    "KAITEN_API_BASE",
+    "KAITEN_BROKEN_API",
+    "KAITEN_CACHE_DIR"
+  ];
+  for (const key of keys) {
+    delete process.env[key];
   }
 }
