@@ -13,6 +13,7 @@ import { apiRequest } from "../commands/api.js";
 import { configGet, configInit, configPath } from "../commands/config.js";
 import { doctor } from "../commands/doctor.js";
 import { findTasks, getTask, listMineTasks } from "../commands/tasks.js";
+import { getTaskComments } from "../commands/task-comments.js";
 import { FileCache } from "./cache.js";
 import { loadConfig } from "./config.js";
 import { CliError, fail } from "./errors.js";
@@ -99,6 +100,21 @@ export const kaitenCli = subcommands({
           id: requiredTextOption("id", "Task id.")
         }, async (args, { client }) => getTask(client, {
           task: args.id,
+          refresh: args.refresh,
+          verbose: args.verbose
+        }))
+      }
+    }),
+    "task-comments": subcommands({
+      name: "task-comments",
+      description: "Inspect Kaiten task comments.",
+      cmds: {
+        get: clientLeaf("get", "Get comments for a task.", {
+          ...outputArgs(),
+          ...runtimeArgs(),
+          task: requiredTextOption("task", "Task id.")
+        }, async (args, { client }) => getTaskComments(client, {
+          task: args.task,
           refresh: args.refresh,
           verbose: args.verbose
         }))

@@ -24,6 +24,7 @@ This repository currently contains a first working scaffold:
 - `tasks mine`
 - `tasks find`
 - `tasks get`
+- `task-comments get`
 
 The CLI is Kaiten-only and read-oriented in this version.
 
@@ -159,6 +160,7 @@ Command shape:
 
 ```text
 ktc tasks <mine|find|get> [args] [flags]
+ktc task-comments get [args] [flags]
 ktc doctor [flags]
 ktc api request [flags]
 ```
@@ -168,6 +170,7 @@ Nouns:
 - `doctor`
 - `api request`
 - `tasks`
+- `task-comments`
 - `config`
 
 Verbs:
@@ -261,6 +264,14 @@ Debug a slow request:
 
 ```bash
 ktc tasks get --id 9001 --verbose
+```
+
+### Inspect task comments
+
+Get comments for a task:
+
+```bash
+ktc task-comments get --task 9001
 ```
 
 Use the raw escape hatch for a read-only endpoint:
