@@ -303,7 +303,13 @@ test("config path prints the resolved absolute config path", async () => {
 
 function snapshotEnv(keys) {
   const allKeys = [...new Set([...keys, "XDG_CONFIG_HOME", "XDG_CACHE_HOME", "XDG_RUNTIME_DIR"])];
-  return Object.fromEntries(allKeys.map((key) => [key, process.env[key]]));
+  const snapshot = Object.fromEntries(allKeys.map((key) => [key, process.env[key]]));
+  // Clear the environment for the current process to ensure isolation-sensitive code
+  // defaults to HOME-based paths or fresh configuration.
+  for (const key of allKeys) {
+    delete process.env[key];
+  }
+  return snapshot;
 }
 
 function restoreEnvSnapshot(snapshot) {

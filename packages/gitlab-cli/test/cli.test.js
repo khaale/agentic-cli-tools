@@ -169,15 +169,20 @@ test("config init requires --force to overwrite an existing config", async () =>
   );
 
   try {
-    const failed = await captureProcess(async () => {
-      await main(["config", "init"]);
+    const failed = await runCli(binPath, ["config", "init"], {
+      clearEnv: true,
+      env: { HOME: homeDir }
     });
 
     assert.equal(failed.exitCode, 3);
     assert.match(failed.stderr, /config file already exists/);
 
-    const success = await captureProcess(async () => {
-      await main(["config", "init", "--force", "--gitlab-token", "forced-token"]);
+    const success = await runCli(binPath, ["config", "init", "--force", "--gitlab-token", "forced-token"], {
+      clearEnv: true,
+      env: {
+        HOME: homeDir,
+        GITLAB_HOST: "https://gitlab.example.com"
+      }
     });
 
     assert.equal(success.exitCode, 0);
@@ -220,8 +225,9 @@ test("config init checks for existing config before requiring env values", async
   );
 
   try {
-    const result = await captureProcess(async () => {
-      await main(["config", "init"]);
+    const result = await runCli(binPath, ["config", "init"], {
+      clearEnv: true,
+      env: { HOME: homeDir }
     });
 
     assert.equal(result.exitCode, 3);
@@ -521,7 +527,13 @@ test("glc api request performs read-only JSON requests", async () => {
 
 function snapshotEnv(keys) {
   const allKeys = [...new Set([...keys, "XDG_CONFIG_HOME", "XDG_CACHE_HOME", "XDG_RUNTIME_DIR"])];
-  return Object.fromEntries(allKeys.map((key) => [key, process.env[key]]));
+  const snapshot = Object.fromEntries(allKeys.map((key) => [key, process.env[key]]));
+  // Clear the environment for the current process to ensure isolation-sensitive code
+  // defaults to HOME-based paths or fresh configuration.
+  for (const key of allKeys) {
+    delete process.env[key];
+  }
+  return snapshot;
 }
 
 function restoreEnvSnapshot(snapshot) {
