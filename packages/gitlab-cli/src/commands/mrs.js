@@ -482,7 +482,7 @@ function normalizeSnapshotDatasets(include) {
 function buildChangeArtifacts(changes) {
   return changes.map((change) => {
     const effectivePath = change.new_path || change.old_path || "(unknown path)";
-    const artifact = `${CHANGE_ARTIFACT_ROOT}/${encodeArtifactName(effectivePath)}.md`;
+    const artifact = `${CHANGE_ARTIFACT_ROOT}/${effectivePath}`;
     return {
       path: effectivePath,
       old_path: change.old_path || null,
@@ -493,7 +493,7 @@ function buildChangeArtifacts(changes) {
       collapsed: change.collapsed,
       too_large: change.too_large,
       generated_file: change.generated_file,
-      content: renderChangeArtifactMarkdown(change, effectivePath)
+      content: renderChangeDiff(change)
     };
   });
 }
@@ -512,51 +512,33 @@ function inferChangeType(change) {
 }
 
 async function writeChangeArtifacts(outputDir, artifacts) {
-  await fs.mkdir(path.join(outputDir, CHANGE_ARTIFACT_ROOT), { recursive: true });
   for (const artifact of artifacts) {
     const targetPath = path.join(outputDir, artifact.artifact);
-    await writeMarkdown(targetPath, artifact.content);
+    await fs.mkdir(path.dirname(targetPath), { recursive: true });
+    await writeRawFile(targetPath, artifact.content);
   }
 }
 
-function renderChangeArtifactMarkdown(change, effectivePath) {
+async function writeRawFile(filePath, content) {
+  await fs.writeFile(filePath, content.endsWith("\n") ? content : `${content}\n`, "utf8");
+}
+
+function renderChangeDiff(change) {
   const sanitized = anonymizeForOutput(change);
-  const lines = [`# ${effectivePath}`, ""];
-  lines.push(`- Change type: ${inferChangeType(sanitized)}`);
-  lines.push(`- Old path: ${sanitized.old_path || "(none)"}`);
-  lines.push(`- New path: ${sanitized.new_path || "(none)"}`);
-  lines.push(`- New file: ${sanitized.new_file ? "yes" : "no"}`);
-  lines.push(`- Deleted file: ${sanitized.deleted_file ? "yes" : "no"}`);
-  lines.push(`- Renamed file: ${sanitized.renamed_file ? "yes" : "no"}`);
-  if (sanitized.generated_file !== undefined) {
-    lines.push(`- Generated file: ${sanitized.generated_file ? "yes" : "no"}`);
-  }
-  if (sanitized.collapsed !== undefined) {
-    lines.push(`- Collapsed: ${sanitized.collapsed ? "yes" : "no"}`);
-  }
-  if (sanitized.too_large !== undefined) {
-    lines.push(`- Too large: ${sanitized.too_large ? "yes" : "no"}`);
-  }
 
   if (sanitized.diff) {
-    lines.push("");
-    lines.push("## Diff");
-    lines.push("");
-    lines.push("```diff");
-    lines.push(String(sanitized.diff).trimEnd());
-    lines.push("```");
-  } else if (sanitized.too_large) {
-    lines.push("");
-    lines.push("Diff unavailable: GitLab marked this diff as too large.");
-  } else if (sanitized.collapsed) {
-    lines.push("");
-    lines.push("Diff unavailable: GitLab returned this diff in collapsed form.");
-  } else {
-    lines.push("");
-    lines.push("Diff unavailable.");
+    return String(sanitized.diff).trimEnd();
   }
 
-  return lines.join("\n");
+  if (sanitized.too_large) {
+    return "[Diff unavailable: GitLab marked this diff as too large.]";
+  }
+
+  if (sanitized.collapsed) {
+    return "[Diff unavailable: GitLab returned this diff in collapsed form.]";
+  }
+
+  return "[Diff unavailable.]";
 }
 
 function groupArtifactsByDirectory(artifacts) {
@@ -578,13 +560,6 @@ function groupArtifactsByDirectory(artifacts) {
     }));
 }
 
-function encodeArtifactName(filePath) {
-  return filePath
-    .replaceAll("\\", "/")
-    .split("/")
-    .map((segment) => segment.replace(/[^A-Za-z0-9._-]/g, "_"))
-    .join("__");
-}
 
 function renderTimelineMarkdown(discussions, options) {
   const sanitized = selectTimelineDiscussions(anonymizeForOutput(discussions));
