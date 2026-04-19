@@ -1,8 +1,12 @@
 {
   "name": "@khaale/cli-core",
-  "private": true,
+  "private": false,
   "version": "0.1.1",
   "type": "module",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
   "engines": {
     "node": ">=22"
   },
