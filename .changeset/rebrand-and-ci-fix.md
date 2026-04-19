@@ -1,6 +1,5 @@
 ---
 "@khaale/cli-core": patch
-"@khaale/gitlab-cli": patch
 "@khaale/kaiten-cli": patch
 ---
 
