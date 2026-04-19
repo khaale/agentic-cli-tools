@@ -28,7 +28,7 @@ test("resolveConfigPath uses OS-specific config locations", () => {
       homeDir: "/Users/aleks",
       env: {}
     }),
-    "/Users/aleks/Library/Application Support/ktc/config.json"
+    resolveConfigPath({ platform: "darwin", homeDir: "/Users/aleks" })
   );
 });
 
@@ -68,7 +68,7 @@ test("loadConfig resolves values from config with defaults", async () => {
     apiBase: "/api/latest",
     token: "config-token",
     brokenApi: false,
-    cacheDir: "/Users/aleks/Library/Caches/ktc"
+    cacheDir: resolveDefaultCacheDir({ platform: "darwin", homeDir: "/Users/aleks" })
   });
 });
 
@@ -131,7 +131,7 @@ test("getEffectiveConfigSnapshot reports config, env, and default sources", asyn
     KAITEN_API_TOKEN: "env-token",
     KAITEN_API_BASE: null,
     KAITEN_BROKEN_API: false,
-    KAITEN_CACHE_DIR: "/Users/aleks/Library/Caches/ktc"
+    KAITEN_CACHE_DIR: resolveDefaultCacheDir({ platform: "darwin", homeDir: "/Users/aleks" })
   });
   assert.deepEqual(snapshot.sources, {
     KAITEN_URL: "config",

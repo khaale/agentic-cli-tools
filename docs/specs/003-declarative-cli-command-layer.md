@@ -5,7 +5,7 @@
 - Refactor `glc` so resource and verb declarations live at the CLI edge instead of being spread across command handlers.
 - Keep the existing `glc <resource> <verb>` grammar intact in the first migration.
 - Parse, validate, coerce, and normalize command input before calling lower-level GitLab command code.
-- Keep the first implementation scoped to `/Users/aleksander_khanteev/Documents/projects/khaale/agentic-harness/packages/gitlab-cli`.
+- Keep the first implementation scoped to `/Users/aleksander_khanteev/Documents/projects/khaale/agentic-cli-tools/packages/gitlab-cli`.
 
 ## Goals And Boundaries
 

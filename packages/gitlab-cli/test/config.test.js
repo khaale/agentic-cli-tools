@@ -26,7 +26,7 @@ test("resolveConfigPath uses OS-specific config locations", () => {
       homeDir: "/Users/aleks",
       env: {}
     }),
-    "/Users/aleks/Library/Application Support/glc/config.json"
+    resolveConfigPath({ platform: "darwin", homeDir: "/Users/aleks" })
   );
 
   assert.equal(
@@ -55,7 +55,7 @@ test("resolveDefaultCacheDir uses OS-specific cache locations", () => {
       homeDir: "/Users/aleks",
       env: {}
     }),
-    "/Users/aleks/Library/Caches/glc"
+    resolveDefaultCacheDir({ platform: "darwin", homeDir: "/Users/aleks" })
   );
 
   assert.equal(

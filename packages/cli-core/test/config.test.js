@@ -33,7 +33,7 @@ test("resolveConfigPath uses OS-specific config locations", () => {
       homeDir: "/Users/aleks",
       env: {}
     }),
-    "/Users/aleks/Library/Application Support/glc/config.json"
+    path.join("/Users/aleks", "Library", "Application Support", "glc", "config.json")
   );
 });
 

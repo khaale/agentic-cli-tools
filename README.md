@@ -1,4 +1,4 @@
-# agentic-harness
+# agentic-cli-tools
 
 Home for an agent-oriented CLI workspace that currently ships two primary tool families:
 

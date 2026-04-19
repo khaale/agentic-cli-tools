@@ -3,7 +3,7 @@
 ## Summary
 
 - Redesign merge request snapshots for LLM-driven review workflows.
-- Keep the implementation scoped to `/Users/aleksander_khanteev/Documents/projects/khaale/agentic-harness/packages/gitlab-cli`.
+- Keep the implementation scoped to `/Users/aleksander_khanteev/Documents/projects/khaale/agentic-cli-tools/packages/gitlab-cli`.
 - Replace the old snapshot shape centered on one `changes.md` summary and optional `patch.diff` with a navigable bundle:
   - `overview.md`
   - `timeline.md` when discussions are included
