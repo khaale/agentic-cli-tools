@@ -251,7 +251,7 @@ test("mrs snapshot writes markdown datasets by default and anonymizes identities
   const overview = await fs.readFile(path.join(outputDir, "overview.md"), "utf8");
   const timeline = await fs.readFile(path.join(outputDir, "timeline.md"), "utf8");
   const changes = await fs.readFile(path.join(outputDir, "changes.md"), "utf8");
-  const fileChange = await fs.readFile(path.join(outputDir, "changes", "src__new.js.md"), "utf8");
+  const fileChange = await fs.readFile(path.join(outputDir, "changes", "src", "new.js"), "utf8");
 
   assert.deepEqual(manifest.datasets, ["overview", "discussions", "changes", "commits"]);
   assert.equal(manifest.selected_version_id, 10);
@@ -261,7 +261,7 @@ test("mrs snapshot writes markdown datasets by default and anonymizes identities
     "overview.md",
     "timeline.md",
     "changes.md",
-    "changes/src__new.js.md"
+    "changes/src/new.js"
   ]);
   assert.deepEqual(manifest.changed_files, [
     {
@@ -269,7 +269,7 @@ test("mrs snapshot writes markdown datasets by default and anonymizes identities
       old_path: "src/old.js",
       new_path: "src/new.js",
       change_type: "added",
-      artifact: "changes/src__new.js.md",
+      artifact: "changes/src/new.js",
       has_diff: true,
       generated_file: false
     }
@@ -292,9 +292,8 @@ test("mrs snapshot writes markdown datasets by default and anonymizes identities
   assert.doesNotMatch(timeline, /Requested review from/);
   assert.match(changes, /# Changes for platform\/api!12/);
   assert.match(changes, /## File Tree/);
-  assert.match(changes, /\[src\/new\.js\]\(changes\/src__new\.js\.md\) \| added/);
-  assert.match(fileChange, /# src\/new\.js/);
-  assert.match(fileChange, /```diff/);
+  assert.match(changes, /\[src\/new\.js\]\(changes\/src\/new\.js\) \| added/);
+  assert.match(fileChange, /@@ -0,0 \+1 @@/);
   assert.match(fileChange, /\+value/);
 });
 
@@ -364,13 +363,13 @@ test("mrs snapshot normalizes patch dataset into per-file change artifacts", asy
   const overview = await fs.readFile(path.join(outputDir, "overview.md"), "utf8");
   const pipelines = JSON.parse(await fs.readFile(path.join(outputDir, "pipelines.json"), "utf8"));
   const changes = await fs.readFile(path.join(outputDir, "changes.md"), "utf8");
-  const fileChange = await fs.readFile(path.join(outputDir, "changes", "src__new.js.md"), "utf8");
+  const fileChange = await fs.readFile(path.join(outputDir, "changes", "src", "new.js"), "utf8");
   const manifest = JSON.parse(await fs.readFile(path.join(outputDir, "manifest.json"), "utf8"));
 
   assert.match(overview, /sha256:[a-f0-9]{12}/);
   assert.equal(pipelines[0].status, "success");
   assert.deepEqual(manifest.datasets, ["overview", "pipelines", "changes"]);
-  assert.match(changes, /\[src\/new\.js\]\(changes\/src__new\.js\.md\)/);
+  assert.match(changes, /\[src\/new\.js\]\(changes\/src\/new\.js\)/);
   assert.match(fileChange, /\+value/);
 });
 
@@ -479,21 +478,21 @@ test("mrs snapshot writes explicit unavailable notes for collapsed and too-large
   });
 
   const changes = await fs.readFile(path.join(outputDir, "changes.md"), "utf8");
-  const renamedChange = await fs.readFile(path.join(outputDir, "changes", "src__renamed.js.md"), "utf8");
-  const largeChange = await fs.readFile(path.join(outputDir, "changes", "docs__large.md.md"), "utf8");
+  const renamedChange = await fs.readFile(path.join(outputDir, "changes", "src", "renamed.js"), "utf8");
+  const largeChange = await fs.readFile(path.join(outputDir, "changes", "docs", "large.md"), "utf8");
   const manifest = JSON.parse(await fs.readFile(path.join(outputDir, "manifest.json"), "utf8"));
 
-  assert.match(changes, /\[src\/renamed\.js\]\(changes\/src__renamed\.js\.md\) \| renamed \| diff unavailable/);
-  assert.match(changes, /\[docs\/large\.md\]\(changes\/docs__large\.md\.md\) \| modified \| diff unavailable/);
-  assert.match(renamedChange, /Diff unavailable: GitLab returned this diff in collapsed form\./);
-  assert.match(largeChange, /Diff unavailable: GitLab marked this diff as too large\./);
+  assert.match(changes, /\[src\/renamed\.js\]\(changes\/src\/renamed\.js\) \| renamed \| diff unavailable/);
+  assert.match(changes, /\[docs\/large\.md\]\(changes\/docs\/large\.md\) \| modified \| diff unavailable/);
+  assert.match(renamedChange, /\[Diff unavailable: GitLab returned this diff in collapsed form\.\]/);
+  assert.match(largeChange, /\[Diff unavailable: GitLab marked this diff as too large\.\]/);
   assert.deepEqual(manifest.changed_files, [
     {
       path: "src/renamed.js",
       old_path: "src/old.js",
       new_path: "src/renamed.js",
       change_type: "renamed",
-      artifact: "changes/src__renamed.js.md",
+      artifact: "changes/src/renamed.js",
       has_diff: false,
       collapsed: true
     },
@@ -502,7 +501,7 @@ test("mrs snapshot writes explicit unavailable notes for collapsed and too-large
       old_path: "docs/large.md",
       new_path: "docs/large.md",
       change_type: "modified",
-      artifact: "changes/docs__large.md.md",
+      artifact: "changes/docs/large.md",
       has_diff: false,
       too_large: true
     }
