@@ -70,7 +70,7 @@ test("loadConfig resolves values from config with defaults", async () => {
     apiBase: "/api/latest",
     token: "config-token",
     brokenApi: false,
-    cacheDir: resolveDefaultCacheDir({ platform: "darwin", homeDir: "/Users/aleks" })
+    cacheDir: resolveDefaultCacheDir({ platform: "darwin", homeDir: "/Users/aleks", env: {} })
   });
 });
 
@@ -176,7 +176,7 @@ test("config init writes config.json using env fallback", async () => {
     const data = JSON.parse(result.stdout);
     assert.equal(
       data.path,
-      resolveConfigPath({ homeDir })
+      resolveConfigPath({ homeDir, env: {} })
     );
     assert.deepEqual(data.configured.sort(), [
       "KAITEN_API_BASE",
@@ -243,7 +243,7 @@ test("config get returns path and configured parameter names only", async () => 
     "HOME"
   ]);
   const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), "ktc-cli-home-"));
-  const configDir = path.dirname(resolveConfigPath({ homeDir }));
+  const configDir = path.dirname(resolveConfigPath({ homeDir, env: {} }));
   const configPath = path.join(configDir, "config.json");
 
   process.env.HOME = homeDir;
@@ -293,7 +293,7 @@ test("config path prints the resolved absolute config path", async () => {
     assert.equal(result.exitCode, 0);
     assert.equal(
       result.stdout,
-      `${resolveConfigPath({ homeDir })}\n`
+      `${resolveConfigPath({ homeDir, env: {} })}\n`
     );
   } finally {
     restoreEnvSnapshot(envSnapshot);

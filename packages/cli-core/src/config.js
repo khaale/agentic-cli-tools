@@ -8,10 +8,14 @@ const POSIX_DIR_MODE = 0o700;
 const POSIX_FILE_MODE = 0o600;
 
 export function resolveConfigPath(toolName, options = {}) {
-  const env = options.env || process.env;
+  const env = options.env !== undefined ? options.env : process.env;
   const homeDir = options.homeDir || os.homedir();
   const platform = options.platform || process.platform;
   const platformPath = pathForPlatform(platform);
+
+  if (process.env.CI) {
+    console.error(`[DEBUG:resolveConfigPath] tool=${toolName} home=${homeDir} platform=${platform} hasEnv=${options.env !== undefined} XDG=${env.XDG_CONFIG_HOME}`);
+  }
 
   if (platform === "win32") {
     const root =
@@ -37,10 +41,14 @@ export function resolveConfigPath(toolName, options = {}) {
 }
 
 export function resolveDefaultCacheDir(toolName, options = {}) {
-  const env = options.env || process.env;
+  const env = options.env !== undefined ? options.env : process.env;
   const homeDir = options.homeDir || os.homedir();
   const platform = options.platform || process.platform;
   const platformPath = pathForPlatform(platform);
+
+  if (process.env.CI) {
+    console.error(`[DEBUG:resolveDefaultCacheDir] tool=${toolName} home=${homeDir} platform=${platform} hasEnv=${options.env !== undefined} XDG=${env.XDG_CACHE_HOME}`);
+  }
 
   if (platform === "win32") {
     const root = env.LOCALAPPDATA || platformPath.join(homeDir, "AppData", "Local");
