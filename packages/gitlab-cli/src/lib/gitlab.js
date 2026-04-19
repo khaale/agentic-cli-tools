@@ -1,3 +1,4 @@
+import { parseDateSpec } from "@khaale/cli-core";
 import { fail } from "./errors.js";
 
 const MAX_RETRIES = 2;
@@ -157,6 +158,16 @@ export function buildMergeRequestListQuery(options) {
     query.scope = options.scope;
   } else if (!options.project && !options.group) {
     query.scope = "all";
+  }
+
+  if (options.since) {
+    const date = parseDateSpec(options.since);
+    query.updated_after = date.toISOString();
+  }
+
+  if (options.till) {
+    const date = parseDateSpec(options.till);
+    query.updated_before = date.toISOString();
   }
 
   return query;

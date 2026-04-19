@@ -46,10 +46,10 @@ test("task-comments get returns normalized comments", async () => {
 
   assert.equal(result.kind, "list");
   assert.equal(result.data.length, 2);
-  assert.equal(result.data[0].id, 1);
-  assert.equal(result.data[0].content, "First comment");
-  assert.equal(result.data[0].author.full_name, "Alice Example");
-  assert.equal(result.data[1].id, 2);
-  assert.equal(result.data[1].content, "Second comment");
+  assert.equal(result.data[0].id, 2);
+  assert.equal(result.data[0].content, "Second comment");
+  assert.equal(result.data[0].author.full_name, "Bob Example");
+  assert.equal(result.data[1].id, 1);
+  assert.equal(result.data[1].content, "First comment");
   assert.equal(client.calls[0], "/api/latest/cards/9001/comments");
 });

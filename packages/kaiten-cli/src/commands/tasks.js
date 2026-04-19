@@ -1,3 +1,4 @@
+import { parseDateSpec } from "@khaale/cli-core";
 import { anonymizeUser, shortenHash } from "../lib/anonymize.js";
 import { fail } from "../lib/errors.js";
 import { logDebug } from "../lib/debug.js";
@@ -99,17 +100,43 @@ async function collectTaskListViaCards(client, options, { assigneeFilter = null,
       break;
     }
 
-    const pageTasks = pageCards
-      .map((card) => normalizeDirectCardTask(card))
-      .sort(compareTasks);
-    const matchedTasks = applyTaskFilters(pageTasks, {
-      ...options,
-      assigneeFilter,
-      state,
-      limit: undefined
-    });
+    const pageTasks = pageCards.map((card) => normalizeDirectCardTask(card));
 
-    tasks.push(...matchedTasks);
+    if (options.since) {
+      const sinceDate = parseDateSpec(options.since);
+      const isPastSince = (task) => {
+        const updated = new Date(task.updated_at || task.updated);
+        return updated < sinceDate;
+      };
+
+      // Since cards are returned sorted by updated desc, 
+      // if the first card in the page is older than since, we can stop entirely.
+      if (pageTasks.length > 0 && isPastSince(pageTasks[0])) {
+        break;
+      }
+      
+      // If some cards in the page are older than since, we filter them and stop.
+      const hasOldTasks = pageTasks.some(isPastSince);
+      const matchedTasks = applyTaskFilters(pageTasks, {
+        ...options,
+        assigneeFilter,
+        state,
+        limit: undefined
+      });
+      tasks.push(...matchedTasks);
+
+      if (hasOldTasks) {
+        break;
+      }
+    } else {
+      const matchedTasks = applyTaskFilters(pageTasks, {
+        ...options,
+        assigneeFilter,
+        state,
+        limit: undefined
+      });
+      tasks.push(...matchedTasks);
+    }
 
     if (options.limit !== undefined && tasks.length >= options.limit) {
       break;
@@ -241,6 +268,22 @@ function applyTaskFilters(tasks, options) {
 
   if (state !== "all") {
     filtered = filtered.filter((task) => matchesState(task, state));
+  }
+
+  if (options.since) {
+    const sinceDate = parseDateSpec(options.since);
+    filtered = filtered.filter((task) => {
+      const updated = new Date(task.updated_at || task.updated);
+      return updated >= sinceDate;
+    });
+  }
+
+  if (options.till) {
+    const tillDate = parseDateSpec(options.till);
+    filtered = filtered.filter((task) => {
+      const updated = new Date(task.updated_at || task.updated);
+      return updated <= tillDate;
+    });
   }
 
   if (options.limit !== undefined) {

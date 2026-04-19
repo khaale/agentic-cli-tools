@@ -44,9 +44,9 @@ export function summarizeComment(comment) {
 
 export function compareTasks(left, right) {
   return (
-    compareDates(right.updated_at, left.updated_at) ||
-    compareDates(right.created_at, left.created_at) ||
-    compareNumbers(left.id, right.id)
+    compareDates(left.updated_at, right.updated_at) ||
+    compareDates(left.created_at, right.created_at) ||
+    compareNumbers(right.id, left.id)
   );
 }
 

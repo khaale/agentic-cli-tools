@@ -6,3 +6,4 @@ export * from "./fields.js";
 export * from "./hash.js";
 export * from "./json.js";
 export * from "./doctor.js";
+export * from "./date.js";

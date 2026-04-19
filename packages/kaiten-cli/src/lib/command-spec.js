@@ -62,10 +62,14 @@ export const kaitenCli = subcommands({
           ...runtimeArgs(),
           space: textOption("space", "Filter by space id, uid, or title."),
           board: textOption("board", "Filter by board id, uid, or title."),
+          since: textOption("since", "Filter tasks updated after this date (ISO8601 or relative like 2w, 1m)."),
+          till: textOption("till", "Filter tasks updated before this date (ISO8601 or relative like 1w, 1m)."),
           limit: numberArg("limit", "Maximum number of tasks to return.")
         }, async (args, { client }) => listMineTasks(client, {
           space: args.space,
           board: args.board,
+          since: args.since,
+          till: args.till,
           limit: args.limit,
           refresh: args.refresh,
           verbose: args.verbose
@@ -78,7 +82,9 @@ export const kaitenCli = subcommands({
           assignee: textOption("assignee", "Filter by me, id, uid, email, username, or name."),
           search: textOption("search", "Search text."),
           state: stateArg("state", "Task state: open, done, archived, all, or active."),
-          limit: numberArg("limit", "Maximum number of tasks to return."),
+          since: textOption("since", "Filter tasks updated after this date (ISO8601 or relative like 2w, 1m)."),
+          till: textOption("till", "Filter tasks updated before this date (ISO8601 or relative like 1w, 1m)."),
+          limit: numberArg("limit", "Maximum number of items to return."),
           query: restPositionals({
             displayName: "search",
             description: "Optional free-text search terms.",
@@ -90,6 +96,8 @@ export const kaitenCli = subcommands({
           assignee: args.assignee,
           search: args.search || joinTerms(args.query),
           state: args.state,
+          since: args.since,
+          till: args.till,
           limit: args.limit,
           refresh: args.refresh,
           verbose: args.verbose

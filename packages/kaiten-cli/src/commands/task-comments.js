@@ -1,6 +1,6 @@
 import { fail } from "../lib/errors.js";
 import { logDebug } from "../lib/debug.js";
-import { summarizeComment } from "../lib/schemas.js";
+import { compareTasks, summarizeComment } from "../lib/schemas.js";
 
 export async function getTaskComments(client, options) {
   if (!options.task) {
@@ -16,7 +16,8 @@ export async function getTaskComments(client, options) {
   });
 
   const normalized = (Array.isArray(comments) ? comments : [])
-    .map(summarizeComment);
+    .map(summarizeComment)
+    .sort(compareTasks);
 
   return {
     kind: "list",

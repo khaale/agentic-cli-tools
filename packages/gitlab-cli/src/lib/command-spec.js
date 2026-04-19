@@ -188,6 +188,8 @@ export const gitLabCli = subcommands({
         sourceBranch: textOption("source-branch", "Source branch name."),
         targetBranch: textOption("target-branch", "Target branch name."),
         scope: textOption("scope", "GitLab merge request scope."),
+        since: textOption("since", "Filter merge requests updated after this date (ISO8601 or relative like 2w, 1m)."),
+        till: textOption("till", "Filter merge requests updated before this date (ISO8601 or relative like 1w, 1m)."),
         limit: numberArg("limit", "Maximum number of items to return.")
       }, async (args, { client }) => listMergeRequests(client, {
         group: args.group,
@@ -200,6 +202,8 @@ export const gitLabCli = subcommands({
         sourceBranch: args.sourceBranch,
         targetBranch: args.targetBranch,
         scope: args.scope,
+        since: args.since,
+        till: args.till,
         limit: args.limit,
         refresh: args.refresh,
         full: args.full
