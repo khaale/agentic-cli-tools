@@ -2,7 +2,7 @@
 
 ## Summary
 
-- Convert this repo into a `pnpm` monorepo rooted at `/Users/aleksander_khanteev/Documents/projects/khaale/agentic-harness` with a `packages/` layout.
+- Convert this repo into a `pnpm` monorepo rooted at `/Users/aleksander_khanteev/Documents/projects/khaale/agentic-cli-tools` with a `packages/` layout.
 - First phase migrates only `glc` and `kaiten-cli`; `mem`, `ws`, and other tools stay where they are for now.
 - Publish the two CLIs separately as `@khaale/gitlab-cli` and `@khaale/kaiten-cli`.
 - Keep the installed commands short: `glc` and `ktc` only.

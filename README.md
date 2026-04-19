@@ -1,13 +1,34 @@
-# agentic-harness
+# agentic cli tools
 
-Home for an agent-oriented CLI workspace that currently ships two primary tool families:
+Home for agent-oriented CLI tools designed for machine-to-machine and machine-to-human workflows.
 
-- `glc`: GitLab exploration and merge-request review workflows
-- `ktc`: Kaiten task exploration workflows
+## Published Packages
 
-This repository is meant to keep the tools and their agent-facing usage instructions together. The CLI packages live under `packages/`, and the colocated agent skills that teach models how to use them live under `skills/`.
+The following packages are available on npm under the `@khaale` scope:
 
-Specifications live under `docs/specs/`.
+| Command | Full Package Name | Description |
+|:---|:---|:---|
+| `glc` | [`@khaale/gitlab-cli`](https://www.npmjs.com/package/@khaale/gitlab-cli) | GitLab exploration and merge-request review workflows |
+| `ktc` | [`@khaale/kaiten-cli`](https://www.npmjs.com/package/@khaale/kaiten-cli) | Kaiten task exploration workflows |
+
+## Installation
+
+You can install these tools globally using your preferred package manager:
+
+```bash
+# Using npm
+npm install -g @khaale/gitlab-cli @khaale/kaiten-cli
+
+# Using pnpm
+pnpm add -g @khaale/gitlab-cli @khaale/kaiten-cli
+```
+
+Alternatively, you can run them directly without installation using `npx`:
+
+```bash
+npx @khaale/gitlab-cli --help
+npx @khaale/kaiten-cli --help
+```
 
 ## Repository Layout
 
@@ -15,6 +36,8 @@ Specifications live under `docs/specs/`.
 - `skills/`: agent-facing skill definitions that document how to use the CLIs effectively
 - `scripts/`: workspace automation such as local install helpers and publish-time bundling
 - `docs/specs/`: product and implementation specs
+
+This repository keeps the tools and their agent-facing usage instructions together. The CLI packages live under `packages/`, and the colocated agent skills that teach models how to use them live under `skills/`.
 
 ## Agent-First Usage
 
