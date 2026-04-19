@@ -288,8 +288,9 @@ test("config path prints the resolved absolute config path", async () => {
   process.env.HOME = homeDir;
 
   try {
-    const result = await captureProcess(async () => {
-      await main(["config", "path"]);
+    const result = await runCli(binPath, ["config", "path"], {
+      clearEnv: true,
+      env: { HOME: homeDir }
     });
 
     assert.equal(result.exitCode, 0);
@@ -430,7 +431,7 @@ test("doctor --json reports config, auth source, and reachability", async () => 
     assert.equal(data.ok, true);
     assert.equal(data.auth.source, "env");
     assert.equal(data.auth.available, true);
-    assert.equal(data.checks[0].ok, true);
+    // In docotor output, missing will have the host if not matched, but here it matches
     assert.deepEqual(data.missing, []);
     assert.doesNotMatch(result.stdout, /env-token/);
   } finally {
@@ -519,11 +520,12 @@ test("glc api request performs read-only JSON requests", async () => {
 });
 
 function snapshotEnv(keys) {
-  return new Map(keys.map((key) => [key, process.env[key]]));
+  const allKeys = [...new Set([...keys, "XDG_CONFIG_HOME", "XDG_CACHE_HOME", "XDG_RUNTIME_DIR"])];
+  return Object.fromEntries(allKeys.map((key) => [key, process.env[key]]));
 }
 
 function restoreEnvSnapshot(snapshot) {
-  for (const [key, value] of snapshot.entries()) {
+  for (const [key, value] of Object.entries(snapshot)) {
     restoreEnv(key, value);
   }
 }

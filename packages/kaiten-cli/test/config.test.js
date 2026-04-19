@@ -286,8 +286,9 @@ test("config path prints the resolved absolute config path", async () => {
   process.env.HOME = homeDir;
 
   try {
-    const result = await captureProcess(async () => {
-      await main(["config", "path"]);
+    const result = await runCli(binPath, ["config", "path"], {
+      clearEnv: true,
+      env: { HOME: homeDir }
     });
 
     assert.equal(result.exitCode, 0);
@@ -301,7 +302,8 @@ test("config path prints the resolved absolute config path", async () => {
 });
 
 function snapshotEnv(keys) {
-  return Object.fromEntries(keys.map((key) => [key, process.env[key]]));
+  const allKeys = [...new Set([...keys, "XDG_CONFIG_HOME", "XDG_CACHE_HOME", "XDG_RUNTIME_DIR"])];
+  return Object.fromEntries(allKeys.map((key) => [key, process.env[key]]));
 }
 
 function restoreEnvSnapshot(snapshot) {
