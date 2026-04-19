@@ -7,6 +7,8 @@ import { main } from "../src/cli.js";
 import { resolveConfigPath } from "../src/lib/config.js";
 import { captureProcess, restoreEnv, runCli } from "./support.js";
 
+const binPath = new URL("../bin/glc.js", import.meta.url);
+
 test("CLI prints help with no arguments", async () => {
   const result = await captureProcess(async () => {
     await main([]);
@@ -69,8 +71,13 @@ test("config init writes config.json using env fallback", async () => {
   process.env.GITLAB_TASK_ID_PATTERN = "TASK-(\\d+)";
 
   try {
-    const result = await captureProcess(async () => {
-      await main(["config", "init"]);
+    const result = await runCli(binPath, ["config", "init"], {
+      env: {
+        HOME: homeDir,
+        GITLAB_HOST: "https://gitlab.example.com/",
+        GITLAB_TOKEN: "env-token",
+        GITLAB_TASK_ID_PATTERN: "TASK-(\\d+)"
+      }
     });
 
     assert.equal(result.exitCode, 0);
@@ -115,8 +122,8 @@ test("config init can create an empty config scaffold", async () => {
   delete process.env.GITLAB_TASK_ID_PATTERN;
 
   try {
-    const result = await captureProcess(async () => {
-      await main(["config", "init"]);
+    const result = await runCli(binPath, ["config", "init"], {
+      env: { HOME: homeDir }
     });
 
     assert.equal(result.exitCode, 0);
@@ -252,8 +259,12 @@ test("config get returns path and configured parameter names only", async () => 
   );
 
   try {
-    const result = await captureProcess(async () => {
-      await main(["config", "get"]);
+    const result = await runCli(binPath, ["config", "get"], {
+      env: {
+        HOME: homeDir,
+        GITLAB_TOKEN: "env-token",
+        GITLAB_TASK_ID_PATTERN: "TASK-(\\d+)"
+      }
     });
 
     assert.equal(result.exitCode, 0);

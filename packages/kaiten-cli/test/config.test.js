@@ -10,7 +10,9 @@ import {
   resolveDefaultCacheDir
 } from "../src/lib/config.js";
 import { main } from "../src/cli.js";
-import { captureProcess, restoreEnv } from "./support.js";
+import { captureProcess, restoreEnv, runCli } from "./support.js";
+
+const binPath = new URL("../bin/ktc.js", import.meta.url);
 
 test("resolveConfigPath uses OS-specific config locations", () => {
   assert.equal(
@@ -160,8 +162,13 @@ test("config init writes config.json using env fallback", async () => {
   delete process.env.KAITEN_CACHE_DIR;
 
   try {
-    const result = await captureProcess(async () => {
-      await main(["config", "init"]);
+    const result = await runCli(binPath, ["config", "init"], {
+      env: {
+        HOME: homeDir,
+        KAITEN_URL: "https://kaiten.example.com",
+        KAITEN_API_TOKEN: "env-token",
+        KAITEN_API_BASE: "/api/v1"
+      }
     });
 
     assert.equal(result.exitCode, 0);
@@ -208,8 +215,8 @@ test("config init can create an empty config scaffold", async () => {
   wipeEnv();
 
   try {
-    const result = await captureProcess(async () => {
-      await main(["config", "init"]);
+    const result = await runCli(binPath, ["config", "init"], {
+      env: { HOME: homeDir }
     });
 
     assert.equal(result.exitCode, 0);
@@ -252,8 +259,11 @@ test("config get returns path and configured parameter names only", async () => 
   );
 
   try {
-    const result = await captureProcess(async () => {
-      await main(["config", "get"]);
+    const result = await runCli(binPath, ["config", "get"], {
+      env: {
+        HOME: homeDir,
+        KAITEN_API_TOKEN: "env-token"
+      }
     });
 
     assert.equal(result.exitCode, 0);
