@@ -163,6 +163,7 @@ test("config init writes config.json using env fallback", async () => {
 
   try {
     const result = await runCli(binPath, ["config", "init"], {
+      clearEnv: true,
       env: {
         HOME: homeDir,
         KAITEN_URL: "https://kaiten.example.com",
@@ -216,6 +217,7 @@ test("config init can create an empty config scaffold", async () => {
 
   try {
     const result = await runCli(binPath, ["config", "init"], {
+      clearEnv: true,
       env: { HOME: homeDir }
     });
 
@@ -260,6 +262,7 @@ test("config get returns path and configured parameter names only", async () => 
 
   try {
     const result = await runCli(binPath, ["config", "get"], {
+      clearEnv: true,
       env: {
         HOME: homeDir,
         KAITEN_API_TOKEN: "env-token"

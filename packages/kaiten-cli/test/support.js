@@ -59,9 +59,10 @@ export async function runCli(binPath, args, options = {}) {
   const resolvedBinPath = binPath instanceof URL ? fileURLToPath(binPath) : binPath;
 
   try {
+    const baseEnv = options.clearEnv ? {} : process.env;
     const result = await execFileAsync(process.execPath, [resolvedBinPath, ...args], {
       env: {
-        ...process.env,
+        ...baseEnv,
         ...options.env
       }
     });
