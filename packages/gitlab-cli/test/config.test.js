@@ -91,7 +91,7 @@ test("loadConfig resolves host and token from config with default cache dir", as
   assert.deepEqual(config, {
     host: "https://gitlab.example.com",
     token: "config-token",
-    cacheDir: "/Users/aleks/Library/Caches/glc",
+    cacheDir: resolveDefaultCacheDir({ homeDir: "/Users/aleks", platform: "darwin" }),
     taskIdPattern: "#(\\d+)"
   });
 });
@@ -151,7 +151,7 @@ test("getEffectiveConfigSnapshot reports config, env, and default sources", asyn
   assert.deepEqual(snapshot.values, {
     GITLAB_HOST: "https://gitlab.example.com",
     GITLAB_TOKEN: "env-token",
-    GITLAB_CACHE_DIR: "/Users/aleks/Library/Caches/glc",
+    GITLAB_CACHE_DIR: resolveDefaultCacheDir({ homeDir: "/Users/aleks", platform: "darwin" }),
     GITLAB_TASK_ID_PATTERN: "#(\\d+)"
   });
   assert.deepEqual(snapshot.sources, {

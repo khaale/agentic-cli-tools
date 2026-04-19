@@ -4,6 +4,7 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { main } from "../src/cli.js";
+import { resolveConfigPath } from "../src/lib/config.js";
 import { captureProcess, restoreEnv, runCli } from "./support.js";
 
 test("CLI prints help with no arguments", async () => {
@@ -76,7 +77,7 @@ test("config init writes config.json using env fallback", async () => {
     const data = JSON.parse(result.stdout);
     assert.equal(
       data.path,
-      path.join(homeDir, "Library", "Application Support", "glc", "config.json")
+      resolveConfigPath({ homeDir })
     );
     assert.deepEqual(data.configured.sort(), ["GITLAB_HOST", "GITLAB_TASK_ID_PATTERN", "GITLAB_TOKEN"]);
     assert.deepEqual(data.sources, {
@@ -139,7 +140,7 @@ test("config init requires --force to overwrite an existing config", async () =>
     "HOME"
   ]);
   const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), "glc-cli-home-"));
-  const configDir = path.join(homeDir, "Library", "Application Support", "glc");
+  const configDir = path.dirname(resolveConfigPath({ homeDir }));
   const configPath = path.join(configDir, "config.json");
 
   process.env.HOME = homeDir;
@@ -190,7 +191,7 @@ test("config init checks for existing config before requiring env values", async
     "HOME"
   ]);
   const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), "glc-cli-home-"));
-  const configDir = path.join(homeDir, "Library", "Application Support", "glc");
+  const configDir = path.dirname(resolveConfigPath({ homeDir }));
   const configPath = path.join(configDir, "config.json");
 
   process.env.HOME = homeDir;
@@ -231,7 +232,7 @@ test("config get returns path and configured parameter names only", async () => 
     "HOME"
   ]);
   const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), "glc-cli-home-"));
-  const configDir = path.join(homeDir, "Library", "Application Support", "glc");
+  const configDir = path.dirname(resolveConfigPath({ homeDir }));
   const configPath = path.join(configDir, "config.json");
 
   process.env.HOME = homeDir;
@@ -280,7 +281,7 @@ test("config path prints the resolved absolute config path", async () => {
     assert.equal(result.exitCode, 0);
     assert.equal(
       result.stdout,
-      `${path.join(homeDir, "Library", "Application Support", "glc", "config.json")}\n`
+      `${resolveConfigPath({ homeDir })}\n`
     );
   } finally {
     restoreEnvSnapshot(envSnapshot);
@@ -297,7 +298,7 @@ test("data commands work with config-only authentication", async () => {
   ]);
   const originalFetch = globalThis.fetch;
   const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), "glc-cli-home-"));
-  const configDir = path.join(homeDir, "Library", "Application Support", "glc");
+  const configDir = path.dirname(resolveConfigPath({ homeDir }));
   const configPath = path.join(configDir, "config.json");
 
   process.env.HOME = homeDir;

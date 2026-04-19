@@ -168,7 +168,7 @@ test("config init writes config.json using env fallback", async () => {
     const data = JSON.parse(result.stdout);
     assert.equal(
       data.path,
-      path.join(homeDir, "Library", "Application Support", "ktc", "config.json")
+      resolveConfigPath({ homeDir })
     );
     assert.deepEqual(data.configured.sort(), [
       "KAITEN_API_BASE",
@@ -238,7 +238,7 @@ test("config get returns path and configured parameter names only", async () => 
     "HOME"
   ]);
   const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), "ktc-cli-home-"));
-  const configDir = path.join(homeDir, "Library", "Application Support", "ktc");
+  const configDir = path.dirname(resolveConfigPath({ homeDir }));
   const configPath = path.join(configDir, "config.json");
 
   process.env.HOME = homeDir;
@@ -287,7 +287,7 @@ test("config path prints the resolved absolute config path", async () => {
     assert.equal(result.exitCode, 0);
     assert.equal(
       result.stdout,
-      `${path.join(homeDir, "Library", "Application Support", "ktc", "config.json")}\n`
+      `${resolveConfigPath({ homeDir })}\n`
     );
   } finally {
     restoreEnvSnapshot(envSnapshot);
