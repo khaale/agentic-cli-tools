@@ -16,7 +16,7 @@
   "scripts": {
     "start": "node ./bin/pgc.js",
     "build:pack": "node ../../scripts/build-self-contained-cli.mjs packages/postgres-cli pgc",
-    "lint": "node --check ./bin/pgc.js && node --check ./src/cli.js",
+    "lint": "node --check ./bin/pgc.js && node --check ./src/cli.js && node --check ./src/lib/command-spec.js",
     "test": "node --test test/*.test.js",
     "pack:check": "pnpm build:pack && node ../../scripts/test-self-contained-cli.mjs packages/postgres-cli pgc && npm pack --dry-run --cache ./.npm-cache",
     "prepublishOnly": "pnpm lint && pnpm test && pnpm pack:check"
@@ -34,8 +34,7 @@
   "license": "MIT",
   "publishConfig": {
     "access": "public",
-    "registry": "https://registry.npmjs.org/",
-    "provenance": true
+    "registry": "https://registry.npmjs.org/"
   },
   "repository": {
     "type": "git",
@@ -43,6 +42,7 @@
     "directory": "packages/postgres-cli"
   },
   "dependencies": {
+    "cmd-ts": "^0.15.0",
     "pg": "^8.16.3"
   },
   "devDependencies": {
