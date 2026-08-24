@@ -1,6 +1,6 @@
 {
   "name": "@khaale/gitlab-cli",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "LLM-agent native GitLab explorer CLI",
   "type": "module",
   "main": "./dist/cli.js",

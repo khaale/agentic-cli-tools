@@ -1,5 +1,11 @@
 # @khaale/kaiten-cli
 
+## 0.3.1
+
+### Patch Changes
+
+- 3f05741: Fix self-contained CLI bundles so CommonJS dependencies load correctly in Node.js.
+
 ## 0.3.0
 
 ### Minor Changes
