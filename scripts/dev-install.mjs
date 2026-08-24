@@ -13,6 +13,10 @@ const commands = [
   {
     name: "ktc",
     target: path.join(repoRoot, "packages", "kaiten-cli", "bin", "ktc.js")
+  },
+  {
+    name: "pgc",
+    target: path.join(repoRoot, "packages", "postgres-cli", "bin", "pgc.js")
   }
 ];
 

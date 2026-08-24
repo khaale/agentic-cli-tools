@@ -1,0 +1,51 @@
+{
+  "name": "@khaale/postgres-cli",
+  "version": "0.1.0",
+  "description": "Read-only PostgreSQL explorer CLI for agents",
+  "type": "module",
+  "main": "./dist/cli.js",
+  "bin": {
+    "pgc": "./dist/bin/pgc.js"
+  },
+  "files": [
+    "dist",
+    "docs",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "start": "node ./bin/pgc.js",
+    "build:pack": "node ../../scripts/build-self-contained-cli.mjs packages/postgres-cli pgc",
+    "lint": "node --check ./bin/pgc.js && node --check ./src/cli.js",
+    "test": "node --test test/*.test.js",
+    "pack:check": "pnpm build:pack && npm pack --dry-run --cache ./.npm-cache",
+    "prepublishOnly": "pnpm lint && pnpm test && pnpm pack:check"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "keywords": [
+    "postgresql",
+    "postgres",
+    "cli",
+    "agent",
+    "read-only"
+  ],
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/",
+    "provenance": true
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/khaale/agentic-cli-tools.git",
+    "directory": "packages/postgres-cli"
+  },
+  "dependencies": {
+    "pg": "^8.16.3"
+  },
+  "devDependencies": {
+    "@khaale/cli-core": "workspace:*"
+  }
+}
