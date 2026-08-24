@@ -18,7 +18,7 @@
     "build:pack": "node ../../scripts/build-self-contained-cli.mjs packages/gitlab-cli glc",
     "lint": "node --check ./bin/glc.js && node --check ./src/cli.js",
     "test": "node --test test/*.test.js",
-    "pack:check": "pnpm build:pack && npm pack --dry-run --cache ./.npm-cache",
+    "pack:check": "pnpm build:pack && node ../../scripts/test-self-contained-cli.mjs packages/gitlab-cli glc && npm pack --dry-run --cache ./.npm-cache",
     "prepublishOnly": "pnpm lint && pnpm test && pnpm pack:check"
   },
   "engines": {

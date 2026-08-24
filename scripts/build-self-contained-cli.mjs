@@ -30,6 +30,9 @@ await build({
   platform: "node",
   target: "node22",
   packages: "bundle",
+  banner: {
+    js: "import { createRequire } from 'node:module'; const require = createRequire(import.meta.url);"
+  },
   logLevel: "silent"
 });
 
