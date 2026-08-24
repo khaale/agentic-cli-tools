@@ -64,7 +64,7 @@ Successful commands will emit JSON by default and support compact JSON/field pro
 
 ### Ship a companion agent skill with the CLI
 
-The package will include `skills/pgc/SKILL.md` following the existing `glc`/`ktc` companion-skill pattern. It will instruct an agent to run `pgc --json doctor` first, select a named session instead of handling credentials, start schema exploration with an overview or name search, expand only required objects and relationships, keep queries read-only and bounded, and compare two independently supplied query results using same-named key columns. The skill will document JSON as the canonical format and mention Markdown/CSV only as explicit renderings where supported.
+The package will include `skills/postgres-cli/SKILL.md` following the existing `glc`/`ktc` companion-skill pattern. It will instruct an agent to run `pgc --json doctor` first, select a named session instead of handling credentials, start schema exploration with an overview or name search, expand only required objects and relationships, keep queries read-only and bounded, and compare two independently supplied query results using same-named key columns. The skill will document JSON as the canonical format and mention Markdown/CSV only as explicit renderings where supported.
 
 ## Risks / Trade-offs
 

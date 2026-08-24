@@ -35,7 +35,7 @@
 
 ## 6. Agent-facing documentation and release readiness
 
-- [x] 6.1 Add `skills/pgc/SKILL.md` following the existing companion-skill format; document `pgc --json doctor`, named sessions, secret handling, schema overview/search/detail/relationships, bounded read-only queries, two-query comparison with key columns, and output formats; verify examples contain no real credentials and match the CLI help.
+- [x] 6.1 Add `skills/postgres-cli/SKILL.md` following the existing companion-skill format; document `pgc --json doctor`, named sessions, secret handling, schema overview/search/detail/relationships, bounded read-only queries, two-query comparison with key columns, and output formats; verify examples contain no real credentials and match the CLI help.
 - [x] 6.2 Document named session configuration, secret handling, read-only guarantees, progressive schema workflow, query limits, and comparison examples in the package README; verify examples contain no real credentials and match the CLI help.
 - [x] 6.3 Add a changeset describing the new public PostgreSQL CLI package and verify the release metadata includes the package without versioning private core packages.
 - [x] 6.4 Add integration/packaging coverage for the new workspace package and run `pnpm check`; verify lint, all unit tests, and self-contained dry-run packaging pass across the monorepo.
