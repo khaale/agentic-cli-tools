@@ -17,7 +17,7 @@
     "build:pack": "node ../../scripts/build-self-contained-cli.mjs packages/kaiten-cli ktc",
     "lint": "node --check ./bin/ktc.js && node --check ./src/cli.js",
     "test": "node --test test/*.test.js",
-    "pack:check": "pnpm build:pack && npm pack --dry-run --cache ./.npm-cache",
+    "pack:check": "pnpm build:pack && node ../../scripts/test-self-contained-cli.mjs packages/kaiten-cli ktc && npm pack --dry-run --cache ./.npm-cache",
     "prepublishOnly": "pnpm lint && pnpm test && pnpm pack:check"
   },
   "engines": {
