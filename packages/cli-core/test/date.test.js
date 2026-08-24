@@ -9,19 +9,25 @@ test("parseDateSpec: ISO8601", () => {
 });
 
 test("parseDateSpec: relative durations", () => {
-  const now = Date.now();
-  
+  const assertCloseToExpected = (input, adjust) => {
+    const result = parseDateSpec(input);
+    const expected = new Date();
+    adjust(expected);
+
+    assert.ok(
+      Math.abs(result.getTime() - expected.getTime()) < 1000,
+      `${input} should resolve close to the expected relative date`
+    );
+  };
+
   // Hours
-  const h = parseDateSpec("1h");
-  assert.ok(now - h.getTime() >= 60 * 60 * 1000);
-  
+  assertCloseToExpected("1h", (date) => date.setHours(date.getHours() - 1));
+
   // Days
-  const d = parseDateSpec("1d");
-  assert.ok(now - d.getTime() >= 24 * 60 * 60 * 1000);
-  
+  assertCloseToExpected("1d", (date) => date.setDate(date.getDate() - 1));
+
   // Weeks
-  const w = parseDateSpec("1w");
-  assert.ok(now - w.getTime() >= 7 * 24 * 60 * 60 * 1000);
+  assertCloseToExpected("1w", (date) => date.setDate(date.getDate() - 7));
 });
 
 test("parseDateSpec: months and years (approximate check)", () => {
