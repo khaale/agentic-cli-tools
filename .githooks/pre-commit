@@ -1,0 +1,10 @@
+#!/bin/sh
+
+set -eu
+
+if ! command -v pnpm >/dev/null 2>&1; then
+  echo "pre-commit: pnpm is required to run the test suite" >&2
+  exit 1
+fi
+
+exec pnpm test

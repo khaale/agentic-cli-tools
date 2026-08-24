@@ -8,6 +8,7 @@
   },
   "scripts": {
     "dev:install": "node ./scripts/dev-install.mjs",
+    "prepare": "node ./scripts/setup-git-hooks.mjs",
     "lint": "pnpm -r lint",
     "test": "pnpm -r test",
     "pack": "pnpm -r pack:check",

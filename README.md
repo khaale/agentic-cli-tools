@@ -51,6 +51,12 @@ That means:
 
 ## Dev Install
 
+Install dependencies from the repository root to configure the pre-commit hook. It runs the workspace test suite before each commit:
+
+```bash
+pnpm install
+```
+
 To create development commands for `glc` and `ktc` under `~/.local/bin/`:
 
 ```bash
