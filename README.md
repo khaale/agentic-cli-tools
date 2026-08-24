@@ -10,6 +10,7 @@ The following packages are available on npm under the `@khaale` scope:
 |:---|:---|:---|
 | `glc` | [`@khaale/gitlab-cli`](https://www.npmjs.com/package/@khaale/gitlab-cli) | GitLab exploration and merge-request review workflows |
 | `ktc` | [`@khaale/kaiten-cli`](https://www.npmjs.com/package/@khaale/kaiten-cli) | Kaiten task exploration workflows |
+| `pgc` | [`@khaale/postgres-cli`](https://www.npmjs.com/package/@khaale/postgres-cli) | Read-only PostgreSQL exploration and cross-environment comparison |
 
 ## Installation
 
@@ -17,10 +18,10 @@ You can install these tools globally using your preferred package manager:
 
 ```bash
 # Using npm
-npm install -g @khaale/gitlab-cli @khaale/kaiten-cli
+npm install -g @khaale/gitlab-cli @khaale/kaiten-cli @khaale/postgres-cli
 
 # Using pnpm
-pnpm add -g @khaale/gitlab-cli @khaale/kaiten-cli
+pnpm add -g @khaale/gitlab-cli @khaale/kaiten-cli @khaale/postgres-cli
 ```
 
 Alternatively, you can run them directly without installation using `npx`:
@@ -28,6 +29,7 @@ Alternatively, you can run them directly without installation using `npx`:
 ```bash
 npx @khaale/gitlab-cli --help
 npx @khaale/kaiten-cli --help
+npx @khaale/postgres-cli --help
 ```
 
 ## Repository Layout
@@ -57,11 +59,11 @@ Install dependencies from the repository root to configure the pre-commit hook. 
 pnpm install
 ```
 
-To create development commands for `glc` and `ktc` under `~/.local/bin/`:
+To create development commands for `glc`, `ktc`, and `pgc` under `~/.local/bin/`:
 
 ```bash
 pnpm dev:install
 export PATH="$HOME/.local/bin:$PATH"
 ```
 
-That gives you direct `glc` and `ktc` commands without typing `node ...`.
+That gives you direct `glc`, `ktc`, and `pgc` commands without typing `node ...`.
