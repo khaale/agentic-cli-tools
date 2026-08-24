@@ -1,6 +1,6 @@
 {
   "name": "@khaale/postgres-cli",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Read-only PostgreSQL explorer CLI for agents",
   "type": "module",
   "main": "./dist/cli.js",

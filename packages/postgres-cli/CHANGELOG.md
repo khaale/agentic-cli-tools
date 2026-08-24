@@ -1,5 +1,12 @@
 # @khaale/postgres-cli
 
+## 0.2.2
+
+### Patch Changes
+
+- 923ce43: Add per-query row-limit overrides and UTF-8 SQL-file input for `pgc`.
+- 923ce43: Align `pgc` command parsing and generated help with the `glc` and `ktc` CLI pattern.
+
 ## 0.2.1
 
 ### Patch Changes
